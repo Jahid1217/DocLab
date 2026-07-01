@@ -16,6 +16,7 @@ using Newtonsoft.Json;
 
 namespace WebApplicationDocLab.Controllers
 {
+    [SessionAuthorize("Doctor")]
     public class DoctorController : Controller
     {
         private DoctorLab _db = new DoctorLab();

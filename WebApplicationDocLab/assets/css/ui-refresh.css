@@ -1,0 +1,285 @@
+/* DoctorLab shared UI layer. Loaded after the vendor theme in every layout. */
+:root {
+  --dl-primary: #0f766e;
+  --dl-primary-dark: #115e59;
+  --dl-accent: #14b8a6;
+  --dl-ink: #172033;
+  --dl-muted: #64748b;
+  --dl-border: #e2e8f0;
+  --dl-surface: #ffffff;
+  --dl-canvas: #f6f8fb;
+  --dl-radius: 14px;
+  --dl-shadow: 0 8px 28px rgba(15, 23, 42, .08);
+  --accent-color: var(--dl-primary);
+  --heading-color: var(--dl-ink);
+  --nav-hover-color: var(--dl-primary);
+  --nav-dropdown-hover-color: var(--dl-primary);
+}
+
+html { overflow-x: hidden; }
+
+body {
+  background: var(--dl-canvas);
+  color: #334155;
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body > div:not(.modal):not(.offcanvas),
+main.main { min-height: 52vh; }
+
+.header {
+  box-shadow: 0 3px 20px rgba(15, 23, 42, .07);
+  z-index: 1030;
+}
+
+.header .topbar {
+  min-height: 34px;
+  height: auto;
+  background: var(--dl-primary-dark);
+  font-size: 13px;
+}
+
+.header .branding {
+  min-height: 72px;
+  padding: 8px 0;
+  background: rgba(255, 255, 255, .97);
+}
+
+.header .logo .sitename {
+  color: var(--dl-ink);
+  font-size: clamp(22px, 2vw, 28px);
+  letter-spacing: -.8px;
+}
+
+.header .logo .sitename::before {
+  content: "+";
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-right: 9px;
+  border-radius: 9px;
+  background: var(--dl-primary);
+  color: white;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.navmenu a,
+.navmenu a:focus {
+  font-family: inherit;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.navmenu > ul > li > a {
+  padding: 18px 13px;
+}
+
+.navmenu .dropdown ul {
+  border: 1px solid var(--dl-border);
+  border-radius: 12px;
+  box-shadow: var(--dl-shadow);
+}
+
+.header .cta-btn,
+.header .cta-btn:focus {
+  margin-left: 16px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  background: var(--dl-primary);
+  font-weight: 700;
+}
+
+.header ul.cta-btn {
+  list-style: none;
+  margin-bottom: 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--dl-ink);
+  letter-spacing: -.02em;
+}
+
+.container.mt-4,
+.container.mt-5,
+.container-fluid {
+  padding-top: clamp(18px, 3vw, 36px);
+  padding-bottom: clamp(28px, 5vw, 60px);
+}
+
+.card,
+.shadow,
+.shadow-lg {
+  border: 1px solid var(--dl-border) !important;
+  border-radius: var(--dl-radius) !important;
+  box-shadow: var(--dl-shadow) !important;
+}
+
+.card {
+  overflow: hidden;
+  background: var(--dl-surface);
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--dl-border);
+  background: #fff;
+}
+
+.card-body { padding: clamp(18px, 2.4vw, 28px); }
+
+.bg-primary { background: linear-gradient(135deg, #0f766e, #14b8a6) !important; }
+.bg-success { background: linear-gradient(135deg, #047857, #10b981) !important; }
+.bg-info { background: linear-gradient(135deg, #0369a1, #38bdf8) !important; }
+.bg-warning { background: linear-gradient(135deg, #b45309, #f59e0b) !important; }
+.card.text-white h1, .card.text-white h2, .card.text-white h3,
+.card.text-white h4, .card.text-white h5, .card.text-white h6 { color: #fff; }
+
+.btn {
+  min-height: 40px;
+  border-radius: 9px;
+  font-weight: 650;
+  box-shadow: none !important;
+}
+
+.btn-primary {
+  background: var(--dl-primary);
+  border-color: var(--dl-primary);
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background: var(--dl-primary-dark);
+  border-color: var(--dl-primary-dark);
+}
+
+.form-control,
+.form-select,
+select,
+textarea,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"] {
+  max-width: none;
+  min-height: 44px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background-color: #fff;
+}
+
+.form-control:focus,
+.form-select:focus,
+select:focus,
+textarea:focus,
+input:focus {
+  border-color: var(--dl-accent);
+  box-shadow: 0 0 0 3px rgba(20, 184, 166, .14);
+  outline: none;
+}
+
+.form-label,
+label {
+  margin-bottom: 6px;
+  color: #334155;
+  font-weight: 650;
+}
+
+.table-responsive {
+  border: 1px solid var(--dl-border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.table {
+  margin-bottom: 0;
+  color: #334155;
+}
+
+.table thead th {
+  border: 0;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table > :not(caption) > * > * {
+  padding: 13px 15px;
+  border-bottom-color: var(--dl-border);
+  vertical-align: middle;
+}
+
+.table tbody tr:hover { background: #f8fafc; }
+
+.alert {
+  max-width: 1120px;
+  margin: 18px auto;
+  border: 0;
+  border-radius: 10px;
+}
+
+.badge { padding: .48em .7em; border-radius: 7px; }
+
+.pagination .page-link {
+  color: var(--dl-primary);
+  border-color: var(--dl-border);
+}
+
+.pagination .active > .page-link {
+  background: var(--dl-primary);
+  border-color: var(--dl-primary);
+}
+
+.hero .welcome h2 {
+  max-width: 720px;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1.06;
+  letter-spacing: -.04em;
+}
+
+.hero .why-box,
+.hero .content .icon-box,
+.service-item {
+  border-radius: var(--dl-radius) !important;
+  box-shadow: var(--dl-shadow);
+}
+
+.section-title h2 { font-size: clamp(28px, 4vw, 38px); }
+
+.footer {
+  margin-top: 40px;
+  border-top: 1px solid var(--dl-border);
+  background: #eef4f4;
+}
+
+.footer .sitename { color: var(--dl-ink); }
+.footer .credits { display: none; }
+
+@media (max-width: 1199px) {
+  .header .branding { min-height: 64px; }
+  .header .cta-btn { margin-left: 8px; padding: 8px 13px; }
+  .mobile-nav-active .navmenu > ul { border-radius: 14px; }
+}
+
+@media (max-width: 767px) {
+  .header .topbar .contact-info { gap: 10px; }
+  .header .topbar .contact-info .ms-4 { margin-left: 0 !important; }
+  .container, .container-fluid { padding-left: 16px; padding-right: 16px; }
+  .card-body { padding: 18px; }
+  .table-responsive { overflow-x: auto; }
+  .footer .footer-top { padding-top: 34px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace WebApplicationDocLab.Controllers
 {
+    [SessionAuthorize("Patient")]
     public class PatientController : Controller
     {
         private DoctorLab _contextdb;

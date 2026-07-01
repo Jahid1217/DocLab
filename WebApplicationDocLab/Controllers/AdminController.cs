@@ -13,11 +13,12 @@ using System.Globalization;
 
 namespace WebApplicationDocLab.Controllers
 {
+    [SessionAuthorize("Admin")]
     public class AdminController : Controller
     {
         protected override void OnActionExecuting(ActionExecutingContext filterContext)
         {
-            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+            if (Session["UserEmail"] == null || Convert.ToString(Session["UserType"]) != "Admin" || Convert.ToString(Session["Status"]) != "Active")
             {
                 filterContext.Result = new RedirectToRouteResult(
                     new System.Web.Routing.RouteValueDictionary {
