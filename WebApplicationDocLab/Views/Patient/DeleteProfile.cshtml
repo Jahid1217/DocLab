@@ -1,0 +1,30 @@
+﻿@model WebApplicationDocLab.Models.User_Info
+
+@{
+    ViewBag.Title = "Delete Profile";
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+<h2>Delete Profile</h2>
+
+<h3>Are you sure you want to delete your account? This action cannot be undone.</h3>
+<div>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>Name:</dt>
+        <dd>@Model.Title @Model.FirstName @Model.LastName</dd>
+
+        <dt>Email:</dt>
+        <dd>@Model.Email</dd>
+    </dl>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-actions no-color">
+            <input type="submit" value="Delete" class="btn btn-danger" /> |
+            @Html.ActionLink("Back to Profile", "Profile")
+        </div>
+    }
+</div>

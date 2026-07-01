@@ -1,0 +1,109 @@
+﻿@model WebApplicationDocLab.Models.Doctor_Type
+
+@{
+    ViewBag.Title = "Create Doctor Type";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+<link href="~/Page/css/Type_Create.css" rel="stylesheet">
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Create New Doctor Type</h4>
+        </div>
+        <div class="card-body">
+            @using (Html.BeginForm("TypeCreate", "MT", FormMethod.Post, new { @class = "form-horizontal", id = "createForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+                @Html.ValidationSummary(true, "", new { @class = "alert alert-danger", role = "alert" })
+
+                <div class="form-group row mb-4">
+                    @Html.LabelFor(model => model.TypeName, htmlAttributes: new { @class = "col-form-label col-md-2" })
+                    <div class="col-md-10">
+                        @Html.EditorFor(model => model.TypeName, new
+                   {
+                       htmlAttributes = new
+                       {
+                           @class = "form-control",
+                           placeholder = "Enter doctor type name",
+                           id = "typeNameInput"
+                       }
+                   })
+                        @Html.ValidationMessageFor(model => model.TypeName, "", new { @class = "text-danger" })
+                        <small class="form-text text-muted">Enter a unique name for the doctor type (e.g., Cardiologist, Dentist)</small>
+                    </div>
+                </div>
+
+                <div class="form-group row">
+                    <div class="col-md-offset-2 col-md-10">
+                        <button type="submit" class="btn btn-primary mr-3">
+                            <i class="fas fa-plus-circle"></i> Create
+                        </button>
+                        <a href="@Url.Action("TypeIndex")" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to List
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<br />
+<br />
+
+<script>
+        $(document).ready(function() {
+            // Initialize form validation
+            $("#createForm").validate({
+                rules: {
+                    TypeName: {
+                        required: true,
+                        minlength: 3,
+                        maxlength: 50,
+                        remote: {
+                            url: '@Url.Action("CheckTypeNameExists", "MT")',
+                            type: "post",
+                            data: {
+                                typeName: function() {
+                                    return $("#typeNameInput").val();
+                                }
+                            }
+                        }
+                    }
+                },
+                messages: {
+                    TypeName: {
+                        required: "Please enter a doctor type name",
+                        minlength: "Type name must be at least 3 characters long",
+                        maxlength: "Type name cannot exceed 50 characters",
+                        remote: "This doctor type already exists"
+                    }
+                },
+                errorElement: 'span',
+                errorClass: 'text-danger',
+                errorPlacement: function(error, element) {
+                    if (element.parent('.input-group').length) {
+                        error.insertAfter(element.parent());
+                    } else {
+                        error.insertAfter(element);
+                    }
+                },
+                highlight: function(element, errorClass, validClass) {
+                    $(element).addClass('is-invalid').removeClass('is-valid');
+                },
+                unhighlight: function(element, errorClass, validClass) {
+                    $(element).removeClass('is-invalid').addClass('is-valid');
+                },
+                submitHandler: function(form) {
+                    // Show loading state
+                    $('button[type="submit"]').html('<i class="fas fa-spinner fa-spin"></i> Creating...').prop('disabled', true);
+
+                    // Submit the form
+                    form.submit();
+                }
+            });
+
+            // Auto-focus on the first input field
+            $('#typeNameInput').focus();
+        });
+</script>

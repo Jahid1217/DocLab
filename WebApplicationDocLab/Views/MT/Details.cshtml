@@ -1,0 +1,81 @@
+﻿@model WebApplicationDocLab.Models.Test
+
+@{
+    ViewBag.Title = "Test Details";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+<link href="~/Page/css/MT_Details.css" rel="stylesheet">
+<div class="details-container">
+    <div class="details-header">
+        <h2><i class="fas fa-info-circle"></i> Test Details</h2>
+        <div class="breadcrumb">
+            @Html.ActionLink("Tests", "Index") &raquo; Details
+        </div>
+    </div>
+
+    <div class="details-card card">
+        <div class="card-body">
+            <dl class="row details-list">
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.TestName)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.TestName)
+                </dd>
+
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Category)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Category)
+                </dd>
+
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Created_at)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Created_at)
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="details-actions">
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        <button id="printBtn" class="btn btn-outline-primary">
+            <i class="fas fa-print"></i> Print
+        </button>
+    </div>
+</div>
+
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+    <script>
+        $(document).ready(function () {
+            // Print functionality
+            $('#printBtn').click(function () {
+                window.print();
+            });
+
+            // Handle success message if coming from edit
+            @if (TempData["DetailsSuccess"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '@TempData["DetailsSuccess"]',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+
+            // Add animation to details card
+            $('.details-card').hide().fadeIn(500);
+        });
+    </script>

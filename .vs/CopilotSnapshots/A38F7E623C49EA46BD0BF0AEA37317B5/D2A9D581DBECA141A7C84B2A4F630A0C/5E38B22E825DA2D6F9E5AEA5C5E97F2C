@@ -1,0 +1,592 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.Linq;
+using System.Web.Mvc;
+using WebApplicationDocLab.Context;
+using WebApplicationDocLab.Models;
+
+namespace WebApplicationDocLab.Controllers
+{
+    public class PatientController : Controller
+    {
+        private DoctorLab _contextdb;
+
+        public PatientController()
+        {
+            _contextdb = new DoctorLab();
+        }
+
+        // GET: Patient Dashboard
+        public ActionResult Dashboard()
+        {
+            // Ensure that the patient is logged in by checking session
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Patient" || Session["Status"].ToString() != "Active")
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get the current patient's Id from session
+            var patientId = (int)Session["UserId"];
+
+            // Get the patient's data from the database
+            var appointments = _contextdb.BookingAppointments.Where(x => x.PatientId == patientId).ToList();
+            var prescriptions = _contextdb.Prescriptions.Where(x => x.PatientId == patientId).ToList();
+            var tests = _contextdb.Test_Lists.Where(x => x.Prescription.PatientId == patientId).ToList();
+            var visitHistory = _contextdb.BookingAppointments.Where(x => x.PatientId == patientId).ToList();
+
+            // Pass the data to the view
+            ViewBag.Appointments = appointments;
+            ViewBag.Prescriptions = prescriptions;
+            ViewBag.TestReports = tests;
+            ViewBag.VisitHistory = visitHistory;
+
+            return View();
+        }
+        // Models/AppointmentViewModel.cs
+
+
+
+        [HttpGet]
+        public ActionResult AddAppointment()
+        {
+            try
+            {
+                ViewBag.Doctors = _contextdb.User_Infos
+                    .Where(u => u.UserType == "Doctor" && u.Status == "Active")
+                    .ToList();
+
+                ViewBag.DoctorDetails = _contextdb.Doctor_Details
+                    .ToList();
+
+                return View(new BookingAppointment());
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                TempData["ErrorMessage"] = "Error loading appointment page: " + ex.Message;
+                return RedirectToAction("Index", "Patient");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddAppointment(BookingAppointment model)
+        {
+            try
+            {
+                // Check if the selected date is valid
+                if (model.Booking_Date < DateTime.Today)
+                {
+                    TempData["ErrorMessage"] = "Cannot book appointments for past dates";
+                    return RedirectToAction("AddAppointment");
+                }
+
+                // Get doctor's availability
+                var doctorDetails = _contextdb.Doctor_Details
+                    .FirstOrDefault(d => d.DoctorId == model.DoctorId);
+
+                if (doctorDetails == null)
+                {
+                    TempData["ErrorMessage"] = "Doctor details not found";
+                    return RedirectToAction("AddAppointment");
+                }
+
+                // Check if doctor is available on the selected day
+                var selectedDay = model.Booking_Date.DayOfWeek.ToString();
+                var availableDays = doctorDetails.Day.Split(',').Select(d => d.Trim());
+
+                if (!availableDays.Contains(selectedDay))
+                {
+                    TempData["ErrorMessage"] = "Doctor is not available on the selected day";
+                    return RedirectToAction("AddAppointment");
+                }
+
+                // Check if time slot is within doctor's working hours
+                var timeStart = TimeSpan.Parse(doctorDetails.TimeStart);
+                var timeEnd = TimeSpan.Parse(doctorDetails.TimeEnd);
+                var selectedTime = (model.ActualTime);
+
+                if (selectedTime < timeStart || selectedTime >= timeEnd)
+                {
+                    TempData["ErrorMessage"] = "Selected time is outside doctor's working hours";
+                    return RedirectToAction("AddAppointment");
+                }
+
+                // Check for existing appointments
+                var existingAppointments = _contextdb.BookingAppointments
+                    .Where(a => a.DoctorId == model.DoctorId &&
+                               DbFunctions.TruncateTime(a.Booking_Date) == model.Booking_Date.Date)
+                    .ToList();
+
+                if (existingAppointments.Count >= 10)
+                {
+                    TempData["ErrorMessage"] = "Doctor already has maximum appointments for this day";
+                    return RedirectToAction("AddAppointment");
+                }
+
+                if (existingAppointments.Any(a => a.ActualTime == model.ActualTime))
+                {
+                    TempData["ErrorMessage"] = "This time slot is already booked";
+                    return RedirectToAction("AddAppointment");
+                }
+
+                // Set additional fields
+                model.PatientId = Convert.ToInt32(Session["UserId"]);
+                model.Created_at = DateTime.Now;
+                model.SerialNumber = existingAppointments.Count + 1;
+
+                _contextdb.BookingAppointments.Add(model);
+                _contextdb.SaveChanges();
+
+                TempData["SuccessMessage"] = $"Appointment booked successfully! Your serial number is {model.SerialNumber}";
+                return RedirectToAction("ViewAppointments");
+            }
+            catch (Exception ex)
+            {
+                // Log the error
+                TempData["ErrorMessage"] = "Error booking appointment: " + ex.Message;
+                return RedirectToAction("AddAppointment");
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetExistingAppointments(int doctorId, string appointmentDate)
+        {
+            try
+            {
+                var date = DateTime.Parse(appointmentDate);
+                var appointments = _contextdb.BookingAppointments
+                    .Where(a => a.DoctorId == doctorId &&
+                               DbFunctions.TruncateTime(a.Booking_Date) == date)
+                    .Select(a => new {
+                        ActualTime = a.ActualTime
+                    })
+                    .ToList();
+
+                return Json(appointments, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { error = ex.Message }, JsonRequestBehavior.AllowGet);
+            }
+        }
+
+
+        // GET: Appointment/ViewAppointments
+        public ActionResult ViewAppointments()
+        {
+            // Check if user is logged in
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            int patientId = Convert.ToInt32(Session["UserId"]);
+
+            // Get appointments with doctor info
+            var appointments = _contextdb.BookingAppointments
+                .Include(a => a.User_Info) // Eager load doctor data
+                .Where(a => a.PatientId == patientId)
+                .OrderByDescending(a => a.Booking_Date)
+                .ToList();
+
+            return View(appointments);
+        }
+
+        // POST: Cancel Appointment
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CancelAppointment(int Id)
+        {
+            var appointment = _contextdb.BookingAppointments.Find(Id);
+
+            if (appointment != null)
+            {
+                _contextdb.BookingAppointments.Remove(appointment);
+                _contextdb.SaveChanges();
+                TempData["Message"] = "Appointment deleted successfully";
+            }
+            else
+            {
+                TempData["Error"] = "Appointment not found";
+            }
+
+            return RedirectToAction("ViewAppointments", "Patient");
+        }
+
+
+
+
+
+
+        [HttpGet]
+        public ActionResult EditAppointment(int id)
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            var appointment = _contextdb.BookingAppointments.Find(id);
+            if (appointment == null || appointment.PatientId != Convert.ToInt32(Session["UserId"]))
+            {
+                return HttpNotFound();
+            }
+
+            // Get available doctors
+            var doctors = _contextdb.User_Infos
+                .Where(u => u.UserType == "Doctor")
+                .AsEnumerable()
+                .Select(d => new {
+                    d.Id,
+                    FullName = $"{d.Title} {d.FirstName} {d.LastName}"
+                })
+                .ToList();
+
+            ViewBag.Doctors = new SelectList(doctors, "Id", "FullName", appointment.DoctorId);
+            ViewBag.BookTypes = new SelectList(Enum.GetValues(typeof(BookType)).Cast<BookType>(), appointment.BookType);
+
+            return View("AddAppointment", appointment);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditAppointment(BookingAppointment appointment)
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var existingAppointment = _contextdb.BookingAppointments.Find(appointment.Id);
+                    if (existingAppointment == null || existingAppointment.PatientId != Convert.ToInt32(Session["UserId"]))
+                    {
+                        return HttpNotFound();
+                    }
+
+                    // Update only the fields that should be editable
+                    existingAppointment.DoctorId = appointment.DoctorId;
+                    existingAppointment.Booking_Date = appointment.Booking_Date;
+                    existingAppointment.BookType = appointment.BookType;
+
+                    _contextdb.SaveChanges();
+
+                    TempData["SuccessMessage"] = "Appointment updated successfully!";
+                    return RedirectToAction("ViewAppointments");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", "Error updating appointment: " + ex.Message);
+                }
+            }
+
+            // Repopulate dropdowns if validation fails
+            var doctors = _contextdb.User_Infos
+                .Where(u => u.UserType == "Doctor")
+                .AsEnumerable()
+                .Select(d => new {
+                    d.Id,
+                    FullName = $"{d.Title} {d.FirstName} {d.LastName}"
+                })
+                .ToList();
+
+            ViewBag.Doctors = new SelectList(doctors, "Id", "FullName", appointment.DoctorId);
+            ViewBag.BookTypes = new SelectList(Enum.GetValues(typeof(BookType)).Cast<BookType>(), appointment.BookType);
+
+            return View("AddAppointment", appointment);
+        }
+
+
+
+
+        // GET: Medical Records
+        public ActionResult MedicalRecords()
+        {
+            if (Session["UserId"] == null || Session["UserType"].ToString() != "Patient" || Session["Status"].ToString() != "Active")
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            int patientId = (int)Session["UserId"];
+            var medicalHistory = _contextdb.Patient_Types.FirstOrDefault(m => m.PatientId == patientId);
+
+            ViewBag.HasRecord = medicalHistory != null;
+
+            // Populate Enum dropdown list
+            ViewBag.RecordTypeList = Enum.GetValues(typeof(RecordType))
+                .Cast<RecordType>()
+                .Select(e => new SelectListItem
+                {
+                    Text = e.ToString(),
+                    Value = e.ToString()
+                }).ToList();
+
+            return View(medicalHistory ?? new Medical_History());
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddMedicalHistory(Medical_History model)
+        {
+            // Ensure the patient is logged in
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get UserId from session and cast it to int
+            int userId = Convert.ToInt32(Session["UserId"]);
+
+            if (ModelState.IsValid)
+            {
+                // Check if medical history already exists for this patient
+                if (_contextdb.Patient_Types.Any(m => m.PatientId == userId))
+                {
+                    TempData["ErrorMessage"] = "Medical history already exists. Please update or delete it first.";
+                    return RedirectToAction("MedicalRecords");
+                }
+
+                // Set patient ID and creation timestamp
+                model.PatientId = userId;
+                model.Created_at = DateTime.Now;
+
+                // Add the new medical history record
+                _contextdb.Patient_Types.Add(model);
+                _contextdb.SaveChanges();
+
+                TempData["SuccessMessage"] = "Medical history added successfully!";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Please ensure all fields are filled out correctly.";
+            }
+
+            // Redirect to MedicalRecords action
+            return RedirectToAction("MedicalRecords");
+        }
+
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult UpdateMedicalHistory(Medical_History model)
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            if (ModelState.IsValid)
+            {
+                var existingRecord = _contextdb.Patient_Types.FirstOrDefault(m =>
+                    m.Id == model.Id && m.PatientId == (int)Session["UserId"]);
+
+                if (existingRecord == null)
+                {
+                    TempData["ErrorMessage"] = "Record not found or you don't have permission to edit it.";
+                    return RedirectToAction("MedicalRecords");
+                }
+
+                existingRecord.Record_Type = model.Record_Type;
+                existingRecord.Description = model.Description;
+
+                _contextdb.SaveChanges();
+
+                TempData["SuccessMessage"] = "Medical history updated successfully!";
+            }
+            return RedirectToAction("MedicalRecords");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteMedicalHistory(int id)
+        {
+            if (Session["UserId"] == null)
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            var record = _contextdb.Patient_Types.FirstOrDefault(m =>
+                m.Id == id && m.PatientId == (int)Session["UserId"]);
+
+            if (record == null)
+            {
+                TempData["ErrorMessage"] = "Record not found or you don't have permission to delete it.";
+            }
+            else
+            {
+                _contextdb.Patient_Types.Remove(record);
+                _contextdb.SaveChanges();
+                TempData["SuccessMessage"] = "Medical history deleted successfully!";
+            }
+
+            return RedirectToAction("MedicalRecords");
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+        // GET: Visit History
+        public ActionResult VisitHistory()
+        {
+            // Ensure the patient is logged in
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Patient" || Session["Status"].ToString() != "Active")
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get the current patient's Id from session
+            var patientId = (int)Session["UserId"];
+
+            // Get the patient's visit history
+            var visits = _contextdb.BookingAppointments.Where(x => x.PatientId == patientId).ToList();
+            ViewBag.VisitHistory = visits;
+            return View();
+        }
+
+        // GET: Prescriptions
+
+        // GET: Prescriptions
+        // GET: Prescriptions
+        public ActionResult Prescriptions()
+        {
+            // Ensure the patient is logged in
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Patient" || Session["Status"].ToString() != "Active")
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get the current patient's Id from session
+            int patientId = (int)Session["UserId"];
+
+            // Get the most recent prescription for the patient, including Doctor_Details and Medicine
+            var recentPrescription = _contextdb.Prescriptions
+                .Where(x => x.PatientId == patientId)
+                .Include(x => x.Doctor_Details)  // Eager load the Doctor_Details
+                .Include(x => x.Medicine)        // Eager load the Medicine
+                .OrderByDescending(x => x.PrescriptionDate)  // Sort by PrescriptionDate descending
+                .FirstOrDefault();  // Get the most recent one
+
+            // Pass the most recent prescription to the view
+            ViewBag.RecentPrescription = recentPrescription;
+
+            return View(recentPrescription);
+        }
+
+        // GET: Previous Prescriptions (excluding the most recent one)
+        public ActionResult PreviousPrescriptions()
+        {
+            // Check if session contains the UserId
+            if (Session["UserId"] == null)
+            {
+                // Redirect to login page if the user is not logged in
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get the current patient's Id from session
+            int patientId = (int)Session["UserId"];
+
+            // Get the most recent prescription to exclude it from the list
+            var recentPrescription = _contextdb.Prescriptions
+                .Where(x => x.PatientId == patientId)
+                .OrderByDescending(x => x.PrescriptionDate)
+                .FirstOrDefault();
+
+            // Get all previous prescriptions, excluding the most recent one
+            var previousPrescriptions = _contextdb.Prescriptions
+                .Where(x => x.PatientId == patientId && x.PrescriptionDate != recentPrescription.PrescriptionDate)
+                .Include(x => x.Doctor_Details)  // Eagerly load Doctor_Details
+                .Include(x => x.Medicine)        // Eagerly load Medicine
+                .OrderByDescending(x => x.PrescriptionDate)  // Sort by PrescriptionDate descending
+                .ToList();  // Execute the query
+
+            // Pass the list of previous prescriptions to the view
+            return View(previousPrescriptions);
+        }
+
+
+
+        // GET: Profile
+        public ActionResult Profile()
+        {
+            // Ensure the patient is logged in
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Patient" || Session["Status"].ToString() != "Active")
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get the current patient's Id from session
+            var patientId = (int)Session["UserId"];
+
+            // Get the patient's profile data
+            var patient = _contextdb.User_Infos.Find(patientId);
+            ViewBag.Patient = patient;
+
+            return View();
+        }
+
+        // POST: Profile/Update
+        [HttpPost]
+        // POST: Update Profile
+        public ActionResult UpdateProfile(int Id, string FirstName, string LastName, string Email, string Phone, string Address)
+        {
+            // Ensure the patient is logged in
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Patient" || Session["Status"].ToString() != "Active")
+            {
+                return RedirectToAction("Login", "Login");
+            }
+
+            // Get the current patient's Id from session
+            var patientId = (int)Session["UserId"];
+
+            // Find the patient in the database
+            var patient = _contextdb.User_Infos.Find(patientId);
+            if (patient != null)
+            {
+                patient.FirstName = FirstName;
+                patient.LastName = LastName;
+                patient.Email = Email;
+                patient.Phone = Phone;
+                patient.Address = Address;
+
+                // Save the updated patient data
+                _contextdb.SaveChanges();
+                TempData["MsgEdit"] = "Your profile has been updated successfully.";
+            }
+            else
+            {
+                TempData["MsgEdit"] = "Patient not found.";
+            }
+
+            // Redirect to the profile page with the updated data
+            return RedirectToAction("Profile");
+        }
+
+
+
+
+
+
+
+        // GET: Logout
+        public ActionResult Logout()
+        {
+            Session.Clear();  // Clear the session
+            return RedirectToAction("Login", "Login");
+        }
+    }
+}

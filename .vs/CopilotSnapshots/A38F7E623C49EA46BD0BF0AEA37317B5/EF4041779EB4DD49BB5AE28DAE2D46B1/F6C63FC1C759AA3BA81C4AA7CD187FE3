@@ -1,0 +1,196 @@
+﻿@model WebApplicationDocLab.Models.BookingAppointment
+@using WebApplicationDocLab.Models;
+@{
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+    var doctorDetails = ViewBag.DoctorDetails as List<Doctor_Details>;
+    var doctors = ViewBag.Doctors as List<User_Info>;
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Book New Appointment</h4>
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="container">
+                <div class="row gy-4">
+                    @{
+                        var activeDoctors = doctors.Where(x => x.UserType == "Doctor" && x.Id != null).ToList();
+
+                        <!-- Doctor List -->
+                        for (int i = 0; i < activeDoctors.Count; i++)
+                        {
+                            var doctor = activeDoctors[i];
+                            var details = doctorDetails?.FirstOrDefault(d => d.DoctorId == doctor.Id);
+                            <div class="col-lg-6 @(i > 1 ? "more-doctors" : "")" style="@(i > 1 ? "display:none;" : "")" data-aos="fade-up" data-aos-delay="100">
+                                <div class="team-member d-flex align-items-start">
+                                    <div class="pic">
+                                        <img src="@Url.Content("~/image/DoctorImage/" + doctor.Image)" class="img-fluid" alt="@doctor.FirstName @doctor.LastName" />
+                                    </div>
+                                    <div class="member-info">
+                                        <h4>@doctor.Title @doctor.FirstName @doctor.LastName</h4>
+                                        <span>@doctor.DocType</span>
+                                        <p>@doctor.Department</p>
+                                        <p><strong>Phone:</strong> @doctor.Phone</p>
+
+                                        @if (details != null)
+                                        {
+                                            <p><strong>Day:</strong> @details.Day</p>
+                                            <p><strong>Time:</strong> @details.TimeStart - @details.TimeEnd</p>
+                                            <p><strong>Consulting Fee:</strong> @details.ConsultingFees</p>
+                                        }
+                                    </div>
+
+                                    <!-- Book Appointment Button with data attributes -->
+                                    <button type="button" class="btn btn-warning book-appointment-btn"
+                                            data-toggle="modal" data-target="#appointmentModal"
+                                            data-doctorid="@doctor.Id"
+                                            data-doctorname="@doctor.Title @doctor.FirstName @doctor.LastName"
+                                            data-consultingfees="@(details?.ConsultingFees ?? 0)"
+                                            data-availabledays="@details?.Day">
+                                        Book Appointment
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Booking Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="appointmentModalLabel">Book Appointment with <span id="modalDoctorName"></span></h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            @using (Html.BeginForm("AddAppointment", "Patient", FormMethod.Post, new { id = "appointmentForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <!-- Hidden Fields -->
+                    <input type="hidden" name="DoctorId" id="doctorId" value="" />
+                    <input type="hidden" name="DoctorName" id="doctorName" value="" />
+                    <input type="hidden" name="PatientId" value="@Session["UserId"]" />
+                    <input type="hidden" name="ConsultingFees" id="consultingFees" value="" />
+
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.BookType, new { @class = "form-label required-field" })
+                        @Html.DropDownListFor(x => x.BookType, new SelectList(Enum.GetValues(typeof(BookType))), "--Select Booking Type--", new { @class = "form-control", required = "required" })
+                        @Html.ValidationMessageFor(x => x.BookType, "", new { @class = "text-danger" })
+                    </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-save"></i> Confirm Appointment
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .team-member {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .team-member:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+
+    .pic img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #f8f9fa;
+    }
+
+    .member-info {
+        margin-left: 15px;
+        flex: 1;
+    }
+
+    .btn-details {
+        align-self: center;
+        margin-left: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .btn-details:hover {
+            transform: scale(1.05);
+        }
+
+    #appointmentDetails {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+</style>
+
+<!-- JavaScript Section -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Handle book appointment button click
+        $('.book-appointment-btn').click(function () {
+            var doctorId = $(this).data('doctorid');
+            var doctorName = $(this).data('doctorname');
+            var consultingFees = $(this).data('consultingfees');
+            var availableDays = $(this).data('availabledays');
+
+            // Set the values in the modal
+            $('#modalDoctorName').text(doctorName);
+            $('#doctorId').val(doctorId);
+            $('#doctorName').val(doctorName);
+            $('#consultingFees').val(consultingFees);
+            $('#availableDays').text(availableDays || 'Not specified');
+
+            // Clear previous date selection
+            $('#appointmentDate').val('');
+        });
+
+        // Form submission handling
+        $('#appointmentForm').submit(function (e) {
+            // You can add additional validation here if needed
+            if ($('#doctorId').val() === '') {
+                alert('Doctor information is missing. Please try again.');
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        });
+    });
+</script>

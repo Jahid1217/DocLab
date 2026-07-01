@@ -1,0 +1,388 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.Payment>
+
+@{
+    ViewBag.Title = "Payments";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<div class="payment-container">
+    <div class="payment-header">
+        <h2><i class="fas fa-credit-card"></i> Payment Records</h2>
+        <div class="search-box-container">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-search"></i></span>
+                <input type="text" id="searchInput" class="form-control" placeholder="Search payments...">
+                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover" id="paymentsTable">
+            <thead>
+                <tr>
+                    <th data-sort="appointment">
+                        <span>Appointment ID <i class="fas fa-sort"></i></span>
+                    </th>
+                    <th data-sort="amount">
+                        <span>Amount <i class="fas fa-sort"></i></span>
+                    </th>
+                    <th data-sort="method">
+                        <span>Payment Method <i class="fas fa-sort"></i></span>
+                    </th>
+                    <th data-sort="transaction">
+                        <span>Transaction ID <i class="fas fa-sort"></i></span>
+                    </th>
+                    <th data-sort="status">
+                        <span>Status <i class="fas fa-sort"></i></span>
+                    </th>
+                    <th data-sort="date">
+                        <span>Date <i class="fas fa-sort"></i></span>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.AppointmentId)</td>
+                        <td class="amount">@Html.DisplayFor(modelItem => item.Amount)</td>
+                        <td>
+                            <span class="payment-method @item.PaymentMethod.ToLower()">
+                                @Html.DisplayFor(modelItem => item.PaymentMethod)
+                            </span>
+                        </td>
+                        <td class="transaction-id">@Html.DisplayFor(modelItem => item.TransactionId)</td>
+                        <td>
+                            <span class="badge @GetStatusBadgeClass(item.Status)">
+                                @Html.DisplayFor(modelItem => item.Status)
+                            </span>
+                        </td>
+                        <td>@Html.DisplayFor(modelItem => item.Created_at)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <div class="showing-entries">
+            Showing <span id="showingCount">0</span> of <span id="totalCount">@Model.Count()</span> entries
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatusBadgeClass(string status)
+    {
+        switch (status.ToLower())
+        {
+            case "completed": return "bg-success";
+            case "pending": return "bg-warning text-dark";
+            case "failed": return "bg-danger";
+            case "refunded": return "bg-info";
+            default: return "bg-secondary";
+        }
+    }
+}
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- CSS -->
+<style>
+    :root {
+        --primary-color: #4361ee;
+        --secondary-color: #3f37c9;
+        --success-color: #4cc9f0;
+        --light-bg: #f8f9fa;
+        --dark-bg: #343a40;
+        --text-color: #495057;
+        --border-color: #dee2e6;
+    }
+
+    .payment-container {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        padding: 25px;
+        margin-top: 20px;
+    }
+
+    .payment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 25px;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+        .payment-header h2 {
+            color: var(--primary-color);
+            margin: 0;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+    .search-box-container {
+        width: 350px;
+        max-width: 100%;
+    }
+
+    .input-group-text {
+        background-color: white;
+        border-right: none;
+    }
+
+    #searchInput {
+        border-left: none;
+        box-shadow: none;
+    }
+
+        #searchInput:focus {
+            border-color: var(--border-color);
+            box-shadow: 0 0 0 0.25rem rgba(67, 97, 238, 0.15);
+        }
+
+    #clearSearch {
+        transition: all 0.3s;
+    }
+
+        #clearSearch:hover {
+            color: #dc3545;
+        }
+
+    #paymentsTable {
+        margin-bottom: 15px;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        #paymentsTable thead th {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+            #paymentsTable thead th span {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+        #paymentsTable tbody tr {
+            transition: all 0.2s;
+        }
+
+            #paymentsTable tbody tr:hover {
+                background-color: rgba(67, 97, 238, 0.05);
+                transform: translateX(2px);
+            }
+
+        #paymentsTable td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: middle;
+        }
+
+    .payment-method {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+        .payment-method.card {
+            background-color: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .payment-method.paypal {
+            background-color: #fff8e1;
+            color: #ff8f00;
+        }
+
+        .payment-method.bank {
+            background-color: #e8f5e9;
+            color: #388e3c;
+        }
+
+        .payment-method.cash {
+            background-color: #f3e5f5;
+            color: #8e24aa;
+        }
+
+    .badge {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        border-radius: 50px;
+        min-width: 80px;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .table-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-color);
+        font-size: 0.9rem;
+    }
+
+    .showing-entries span {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+
+    /* Responsive adjustments */
+    @@media (max-width: 768px) {
+        .payment-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .search-box-container {
+            width: 100%;
+        }
+
+        #paymentsTable thead {
+            display: none;
+        }
+
+        #paymentsTable tbody tr {
+            display: block;
+            margin-bottom: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+        }
+
+        #paymentsTable td {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+            #paymentsTable td:before {
+                content: attr(data-label);
+                font-weight: 600;
+                margin-right: 15px;
+                color: var(--primary-color);
+            }
+    }
+</style>
+
+<!-- JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Initialize variables
+        const $table = $('#paymentsTable');
+        const $rows = $table.find('tbody tr');
+        const $searchInput = $('#searchInput');
+        const $clearSearch = $('#clearSearch');
+        const $showingCount = $('#showingCount');
+        const $totalCount = $('#totalCount');
+
+        // Set initial counts
+        $totalCount.text($rows.length);
+        $showingCount.text($rows.length);
+
+        // Search functionality
+        function performSearch() {
+            const searchTerm = $searchInput.val().toLowerCase();
+            let visibleCount = 0;
+
+            $rows.each(function () {
+                const $row = $(this);
+                const rowText = $row.text().toLowerCase();
+                const isVisible = rowText.includes(searchTerm);
+
+                $row.toggle(isVisible);
+                if (isVisible) visibleCount++;
+            });
+
+            $showingCount.text(visibleCount);
+        }
+
+        // Event listeners
+        $searchInput.on('input', performSearch);
+
+        $clearSearch.on('click', function () {
+            $searchInput.val('');
+            performSearch();
+        });
+
+        // Sort functionality
+        $table.find('th[data-sort]').on('click', function () {
+            const $header = $(this);
+            const sortKey = $header.data('sort');
+            const isAscending = !$header.hasClass('asc');
+
+            // Reset all headers
+            $table.find('th').removeClass('asc desc');
+
+            // Set current header state
+            $header.addClass(isAscending ? 'asc' : 'desc');
+
+            // Sort rows
+            const $tbody = $table.find('tbody');
+            const $sortedRows = $rows.sort(function (a, b) {
+                const aValue = getSortValue($(a), sortKey);
+                const bValue = getSortValue($(b), sortKey);
+
+                if ($.isNumeric(aValue) {
+                    return isAscending ? aValue - bValue : bValue - aValue;
+                } else {
+                    return isAscending
+                        ? aValue.localeCompare(bValue)
+                        : bValue.localeCompare(aValue);
+                }
+            });
+
+            // Reattach sorted rows
+            $tbody.empty().append($sortedRows);
+            performSearch(); // Maintain search filter after sort
+        });
+
+        // Helper function to get sortable value from a row
+        function getSortValue($row, sortKey) {
+            switch (sortKey) {
+                case 'appointment': return $row.find('td').eq(0).text().trim();
+                case 'amount':
+                    return parseFloat($row.find('.amount').text().replace(/[^0-9.]/g, ''));
+                case 'method': return $row.find('.payment-method').text().trim();
+                case 'transaction': return $row.find('.transaction-id').text().trim();
+                case 'status': return $row.find('.badge').text().trim();
+                case 'date': return new Date($row.find('td').eq(5).text().trim());
+                default: return $row.text();
+            }
+        }
+
+        // Make table responsive for mobile
+        function setupResponsiveTable() {
+            if ($(window).width() <= 768) {
+                $table.find('thead th').each(function (i) {
+                    const label = $(this).text().trim();
+                    $table.find('tbody td').eq(i).attr('data-label', label);
+                });
+            }
+        }
+
+        // Initial setup
+        setupResponsiveTable();
+        $(window).on('resize', setupResponsiveTable);
+    });
+</script>

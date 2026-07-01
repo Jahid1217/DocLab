@@ -1,0 +1,179 @@
+﻿// Custom JS for admin appointments page
+document.addEventListener('DOMContentLoaded', function () {
+    // Example: highlight row on click
+    const rows = document.querySelectorAll('.admin-appointments-table tbody tr');
+    rows.forEach(row => {
+        row.addEventListener('click', function () {
+            rows.forEach(r => r.classList.remove('table-active'));
+            this.classList.add('table-active');
+        });
+    });
+});
+$(document).ready(function () {
+    // DOM elements
+    const $table = $('#appointmentsTable');
+    const $rows = $table.find('tbody tr:not(.no-appointments)');
+    const $searchInput = $('#appointmentSearch');
+    const $clearSearch = $('#clearSearch');
+    const $filterStatus = $('#filterStatus');
+    const $filterDoctorType = $('#filterDoctorType');
+    const $showingCount = $('#showingCount');
+    const $totalCount = $('#totalCount');
+    const $prevPage = $('#prevPage');
+    const $nextPage = $('#nextPage');
+    const $pageInfo = $('#pageInfo');
+
+    // Pagination variables
+    let currentPage = 1;
+    const rowsPerPage = 10;
+    let filteredRows = $rows;
+
+    // Initialize counts
+    $totalCount.text($rows.length);
+    updateShowingCount();
+
+    // Search functionality
+    $searchInput.on('input', function () {
+        currentPage = 1;
+        filterRows();
+    });
+
+    $clearSearch.on('click', function () {
+        $searchInput.val('');
+        filterRows();
+    });
+
+    // Filter functionality
+    $filterStatus.add($filterDoctorType).on('change', function () {
+        currentPage = 1;
+        filterRows();
+    });
+
+    // Pagination controls
+    $prevPage.on('click', function () {
+        if (currentPage > 1) {
+            currentPage--;
+            updatePagination();
+        }
+    });
+
+    $nextPage.on('click', function () {
+        if (currentPage < totalPages()) {
+            currentPage++;
+            updatePagination();
+        }
+    });
+
+    // Action buttons
+    $table.on('click', '.btn-view', function () {
+        const appointmentId = $(this).data('id');
+        viewAppointment(appointmentId);
+    });
+
+    $table.on('click', '.btn-edit', function () {
+        const appointmentId = $(this).data('id');
+        editAppointment(appointmentId);
+    });
+
+    $table.on('click', '.btn-cancel', function () {
+        const appointmentId = $(this).data('id');
+        cancelAppointment(appointmentId);
+    });
+
+    // Initialize table
+    updatePagination();
+    setupResponsiveTable();
+    $(window).on('resize', setupResponsiveTable);
+
+    // Functions
+    function filterRows() {
+        const searchTerm = $searchInput.val().toLowerCase();
+        const statusFilter = $filterStatus.val();
+        const doctorTypeFilter = $filterDoctorType.val().toLowerCase();
+
+        filteredRows = $rows.filter(function () {
+            const $row = $(this);
+            const matchesSearch = searchTerm === '' ||
+                $row.text().toLowerCase().includes(searchTerm);
+
+            const matchesStatus = statusFilter === '' ||
+                $row.data('status').toLowerCase() === statusFilter.toLowerCase();
+
+            const matchesDoctorType = doctorTypeFilter === '' ||
+                $row.find('.specialty-badge').text().toLowerCase().includes(doctorTypeFilter);
+
+            return matchesSearch && matchesStatus && matchesDoctorType;
+        });
+
+        updateShowingCount();
+        updatePagination();
+    }
+
+    function updateShowingCount() {
+        $showingCount.text(filteredRows.length);
+    }
+
+    function totalPages() {
+        return Math.ceil(filteredRows.length / rowsPerPage);
+    }
+
+    function updatePagination() {
+        // Hide all rows first
+        filteredRows.hide();
+
+        // Calculate pagination
+        const startIdx = (currentPage - 1) * rowsPerPage;
+        const endIdx = startIdx + rowsPerPage;
+        const paginatedRows = filteredRows.slice(startIdx, endIdx);
+
+        // Show paginated rows
+        paginatedRows.show();
+
+        // Update pagination controls
+        $prevPage.prop('disabled', currentPage === 1);
+        $nextPage.prop('disabled', currentPage >= totalPages());
+        $pageInfo.text(`Page ${currentPage} of ${totalPages()}`);
+
+        // Show no results message if needed
+        if (filteredRows.length === 0) {
+            $table.find('.no-appointments').show();
+        } else {
+            $table.find('.no-appointments').hide();
+        }
+    }
+
+    function setupResponsiveTable() {
+        if ($(window).width() <= 768) {
+            // Add data-label attributes for mobile view
+            $table.find('thead th').each(function (i) {
+                const label = $(this).text().trim();
+                $table.find('tbody td').eq(i).attr('data-label', label);
+            });
+
+            // Special handling for action buttons
+            $table.find('td:nth-child(7)').attr('data-label', 'Actions');
+        }
+    }
+
+    function viewAppointment(id) {
+        console.log(`Viewing appointment ${id}`);
+        // Implement your view logic here
+        // window.location.href = `/Appointments/Details/${id}`;
+    }
+
+    function editAppointment(id) {
+        console.log(`Editing appointment ${id}`);
+        // Implement your edit logic here
+        // window.location.href = `/Appointments/Edit/${id}`;
+    }
+
+    function cancelAppointment(id) {
+        console.log(`Cancelling appointment ${id}`);
+        if (confirm('Are you sure you want to cancel this appointment?')) {
+            // Implement your cancel logic here
+            // $.post(`/Appointments/Cancel/${id}`, function() {
+            //     location.reload();
+            // });
+        }
+    }
+});

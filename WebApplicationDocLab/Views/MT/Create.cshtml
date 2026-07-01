@@ -1,0 +1,130 @@
+﻿@model WebApplicationDocLab.Models.Test
+
+@{
+    ViewBag.Title = "Create New Test";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<div class="create-container">
+    <div class="create-header">
+        <h2><i class="fas fa-plus-circle"></i> Create New Test</h2>
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Please fill in all required fields to create a new test.
+        </div>
+    </div>
+
+    @using (Html.BeginForm("Create", "MT", FormMethod.Post, new { @class = "create-form", id = "createForm" }))
+    {
+        @Html.AntiForgeryToken()
+
+        <div class="form-container">
+            @Html.ValidationSummary(true, "", new { @class = "validation-summary" })
+
+            <div class="form-group row">
+                @Html.LabelFor(model => model.TestName, htmlAttributes: new { @class = "col-form-label col-md-3" })
+                <div class="col-md-9">
+                    @Html.EditorFor(model => model.TestName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter test name", required = "required" } })
+                    @Html.ValidationMessageFor(model => model.TestName, "", new { @class = "validation-message" })
+                </div>
+            </div>
+
+            <div class="form-group row">
+                @Html.LabelFor(model => model.Category, htmlAttributes: new { @class = "col-form-label col-md-3" })
+                <div class="col-md-9">
+                    @Html.EditorFor(model => model.Category, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter category", required = "required" } })
+                    @Html.ValidationMessageFor(model => model.Category, "", new { @class = "validation-message" })
+                </div>
+            </div>
+
+            <div class="form-group row">
+                @Html.LabelFor(model => model.Created_at, htmlAttributes: new { @class = "col-form-label col-md-3" })
+                <div class="col-md-9">
+                    @Html.EditorFor(model => model.Created_at, new { htmlAttributes = new { @class = "form-control datepicker" } })
+                    @Html.ValidationMessageFor(model => model.Created_at, "", new { @class = "validation-message" })
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary submit-btn">
+                    <i class="fas fa-save"></i> Create Test
+                </button>
+                <a href="@Url.Action("Index")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" rel="stylesheet" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <link href="~/Page/css/MT_Create.css" rel="stylesheet">
+    <script>
+        $(document).ready(function () {
+            // Initialize datepicker
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                autoclose: true,
+                todayHighlight: true
+            }).datepicker('setDate', new Date());
+
+            // Form submission handling
+            $('#createForm').submit(function (e) {
+                e.preventDefault();
+
+                // Show loading state
+                $('.submit-btn').html('<i class="fas fa-spinner fa-spin"></i> Creating...').prop('disabled', true);
+
+                // Validate form
+                if ($(this).valid()) {
+                    this.submit();
+                } else {
+                    $('.submit-btn').html('<i class="fas fa-save"></i> Create Test').prop('disabled', false);
+                }
+            });
+
+            // Real-time validation
+            $('input').on('blur', function() {
+                var $input = $(this);
+                var $formGroup = $input.closest('.form-group');
+                var $validationMessage = $formGroup.find('.validation-message');
+
+                if ($input.val() === '') {
+                    $input.addClass('is-invalid');
+                    $validationMessage.show();
+                } else {
+                    $input.removeClass('is-invalid').addClass('is-valid');
+                    $validationMessage.hide();
+                }
+            });
+
+            // Handle success/error messages
+            @if (TempData["CreateSuccess"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '@TempData["CreateSuccess"]',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                }).then(() => {
+                    window.location.href = '@Url.Action("Index")';
+                });
+                </text>
+            }
+
+            @if (TempData["CreateError"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Error!',
+                    text: '@TempData["CreateError"]',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+        });
+    </script>

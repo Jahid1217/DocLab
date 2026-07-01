@@ -1,0 +1,101 @@
+﻿@model WebApplicationDocLab.Models.Medicine
+
+@{
+    ViewBag.Title = "Details";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+<link href="~/Page/css/Medicine_Details.css" rel="stylesheet">
+
+<div class="details-container">
+    <div class="details-header">
+        <h2><i class="fas fa-info-circle"></i> Medicine Details</h2>
+        <div class="breadcrumb">
+            @Html.ActionLink("Medicine", "Index") &raquo; Details
+        </div>
+    </div>
+
+    <div class="details-card card">
+        <div class="card-body">
+            <dl class="row details-list">
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.MedicineName)
+                </dt>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.GenericName)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.MedicineName)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.MedicineCategory)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.MedicineCategory)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Category)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Category)
+                </dd>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.BrandName)
+                </dt>
+                <dt class="col-sm-3">
+                    <div class="col-md-4 text-center">
+                        Image
+                    </div>
+                </dt>
+                <dd class="col-sm-9">
+                    <div class="col-md-4 text-center">
+                        <img src="@Url.Content("~/image/MedicineImage/" +Model.ImageUrl)" class="img-fluid rounded-circle mb-3" style="max-height: 100px;" alt="@Model.MedicineName" />
+                    </div>
+                <dt class="col-sm-3">
+                    @Html.DisplayNameFor(model => model.Description)
+                </dt>
+                <dd class="col-sm-9">
+                    @Html.DisplayFor(model => model.Description)
+                </dd>
+            </dl>
+        </div>
+    </div>
+
+    <div class="details-actions">
+        <a href="@Url.Action("Edit", new { id = Model.Id })" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit
+        </a>
+        <a href="@Url.Action("Index")" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+        @*<button id="printBtn" class="btn btn-outline-primary">
+            <i class="fas fa-print"></i> Print
+        </button>*@
+    </div>
+</div>
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+<script>
+        $(document).ready(function () {
+            // Print functionality
+            $('#printBtn').click(function () {
+                window.print();
+            });
+
+            // Handle success message if coming from edit
+            @if (TempData["DetailsSuccess"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '@TempData["DetailsSuccess"]',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+
+            // Add animation to details card
+            $('.details-card').hide().fadeIn(500);
+        });
+</script>

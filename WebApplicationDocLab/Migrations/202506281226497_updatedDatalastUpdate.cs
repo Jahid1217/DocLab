@@ -1,0 +1,31 @@
+﻿namespace WebApplicationDocLab.Migrations
+{
+    using System;
+    using System.Data.Entity.Migrations;
+    
+    public partial class updatedDatalastUpdate : DbMigration
+    {
+        public override void Up()
+        {
+            CreateTable(
+                "dbo.Feedbacks",
+                c => new
+                    {
+                        Id = c.Int(nullable: false, identity: true),
+                        Email = c.String(),
+                        Phones = c.String(),
+                        Message = c.String(),
+                        Created_at = c.DateTime(nullable: false),
+                    })
+                .PrimaryKey(t => t.Id);
+            
+            AddColumn("dbo.BookingAppointments", "Status", c => c.String());
+        }
+        
+        public override void Down()
+        {
+            DropColumn("dbo.BookingAppointments", "Status");
+            DropTable("dbo.Feedbacks");
+        }
+    }
+}

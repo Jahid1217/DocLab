@@ -1,0 +1,371 @@
+﻿@model WebApplicationDocLab.Models.BookingAppointment
+@using WebApplicationDocLab.Models;
+@{
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+    var doctorDetails = ViewBag.DoctorDetails as List<Doctor_Details>;
+    var doctors = ViewBag.Doctors as List<User_Info>;
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Book New Appointment</h4>
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            <div class="container">
+                <div class="row gy-4">
+                    @{
+                        var activeDoctors = doctors.Where(x => x.UserType == "Doctor").ToList();
+
+                        for (int i = 0; i < activeDoctors.Count; i++)
+                        {
+                            var doctor = activeDoctors[i];
+                            var details = doctorDetails?.FirstOrDefault(d => d.DoctorId == doctor.Id);
+
+                            <div class="col-lg-6 @(i > 1 ? "more-doctors" : "")" style="@(i > 1 ? "display:none;" : "")" data-aos="fade-up" data-aos-delay="100">
+                                <div class="team-member d-flex align-items-start">
+                                    <div class="pic">
+                                        <img src="@Url.Content("~/image/DoctorImage/" + doctor.Image)" class="img-fluid" alt="@doctor.FirstName @doctor.LastName" />
+                                    </div>
+                                    <div class="member-info">
+                                        <h4>@doctor.Title @doctor.FirstName @doctor.LastName</h4>
+                                        <span>@doctor.DocType</span>
+                                        <p>@doctor.Department</p>
+                                        <p><strong>Phone:</strong> @doctor.Phone</p>
+                                        @if (details != null)
+                                        {
+                                            <p><strong>Day:</strong> @details.Day</p>
+                                            <p><strong>Time:</strong> @details.TimeStart - @details.TimeEnd</p>
+                                            <p><strong>Consulting Fee:</strong> @details.ConsultingFees</p>
+                                        }
+                                    </div>
+                                    <button type="button" class="btn btn-details"
+                                            data-toggle="modal"
+                                            data-target="#appointmentModal"
+                                            data-doctorid="@doctor.Id"
+                                            data-doctorname="@doctor.FirstName"
+                                            data-consultingfees="@details.ConsultingFees"
+                <i class="fas fa-eye"></i> Book Appointment
+            </button>
+
+                                </div>
+                            </div>
+
+
+
+
+
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Booking Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="appointmentModalLabel">Book Appointment with <span id="doctorName"></span></h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            @using (Html.BeginForm("AddAppointment", "Patient", FormMethod.Post, new { id = "appointmentForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <input type="hidden" name="DoctorId" id="doctorId" />
+                    <input type="hidden" name="PatientId" value="@Session["UserId"]" />
+                    <input type="hidden" name="SerialNumber" id="serialNumber" />
+                    <input type="hidden" name="ConsultingFees" id="consultingFees" />
+
+                    <div class="form-group">
+                        <label class="detail-label">Booking Type</label>
+                        <select name="BookingType" class="form-control" required id="bookingType">
+                            <option value="">Select Type</option>
+                            <option value="Online">Online</option>
+                            <option value="Offline">Offline</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="detail-label">Appointment Date</label>
+                        <input type="date" name="Booking_Date" class="form-control" id="appointmentDate" required />
+                        <small class="text-muted">Available days: <span id="availableDays"></span></small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="detail-label">Available Time Slots</label>
+                        <select name="ActualTime" class="form-control" id="timeSlots" required>
+                            <option value="">Select a date first</option>
+                        </select>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Appointment Details:</strong>
+                        <div id="appointmentDetails">
+                            Please select date and time to see details
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-save"></i> Confirm Appointment
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript to pass data to modal -->
+<script>
+    $(document).ready(function () {
+        $('.btn-details').click(function () {
+            var doctorId = $(this).data('doctorid');
+            var doctorName = $(this).data('doctorname');
+            var consultingFees = $(this).data('consultingfees');
+            var serialNumber = $(this).data('serialnumber');
+
+            $('#doctorId').val(doctorId);
+            $('#doctorName').text(doctorName);
+            $('#consultingFees').val(consultingFees);
+            $('#serialNumber').val(serialNumber);
+
+            // Optional: Reset date, time slots, and details
+            $('#appointmentDate').val('');
+            $('#timeSlots').html('<option value="">Select a date first</option>');
+            $('#appointmentDetails').html('Please select date and time to see details');
+        });
+    });
+</script>
+
+<style>
+    .team-member {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .team-member:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-5px);
+        }
+
+    .pic img {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 50%;
+        border: 3px solid #f8f9fa;
+    }
+
+    .member-info {
+        margin-left: 15px;
+        flex: 1;
+    }
+
+    .book-appointment {
+        transition: all 0.3s ease;
+    }
+
+        .book-appointment:hover {
+            transform: scale(1.05);
+        }
+
+    #appointmentDetails {
+        margin-top: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        var currentDoctorId = 0;
+        var currentDoctorDetails = {};
+        var availableDays = [];
+        var timeSlots = [];
+
+        // Initialize modal when booking button clicked
+        $('.book-appointment').click(function() {
+            currentDoctorId = $(this).data('doctor-id');
+            $('#doctorId').val(currentDoctorId);
+            $('#doctorName').text($(this).data('doctor-name'));
+            $('#consultingFees').val($(this).data('fees'));
+
+            // Get doctor details
+            currentDoctorDetails = {
+                timeStart: $(this).data('time-start'),
+                timeEnd: $(this).data('time-end'),
+                days: $(this).data('days')
+            };
+
+            // Process available days
+            availableDays = currentDoctorDetails.days.split(',').map(day => day.trim());
+            $('#availableDays').text(availableDays.join(', '));
+
+            // Set min and max date (today to +30 days)
+            const today = new Date();
+            const maxDate = new Date();
+            maxDate.setDate(today.getDate() + 30);
+
+            $('#appointmentDate').attr('min', today.toISOString().split('T')[0]);
+            $('#appointmentDate').attr('max', maxDate.toISOString().split('T')[0]);
+            $('#appointmentDate').val('');
+
+            // Reset form
+            $('#timeSlots').html('<option value="">Select a date first</option>');
+            $('#appointmentDetails').html('Please select date and time to see details');
+            $('#serialNumber').val('');
+            $('#bookingType').val('');
+
+            // Show modal
+            $('#appointmentModal').modal('show');
+        });
+
+        // When date changes, generate time slots
+        $('#appointmentDate').change(function() {
+            const selectedDateStr = $(this).val();
+            if (!selectedDateStr) return;
+
+            const selectedDate = new Date(selectedDateStr);
+            const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'long' });
+
+            // Check if selected day is available
+            if (!availableDays.includes(dayName)) {
+                alert('Doctor is not available on ' + dayName);
+                $(this).val('');
+                $('#timeSlots').html('<option value="">Select a date first</option>');
+                return;
+            }
+
+            // Generate time slots
+            generateTimeSlots(selectedDate);
+        });
+
+        // When time slot selected, show details
+        $('#timeSlots').change(function() {
+            if ($(this).val()) {
+                const selectedTime = $(this).val();
+                const serialNumber = $(this).find('option:selected').data('serial');
+                $('#serialNumber').val(serialNumber);
+
+                $('#appointmentDetails').html(`
+                    <strong>Serial No:</strong> ${serialNumber}<br>
+                    <strong>Date:</strong> ${$('#appointmentDate').val()}<br>
+                    <strong>Time:</strong> ${selectedTime}<br>
+                    <strong>Consultation Duration:</strong> 10 minutes<br>
+                    <strong>Consulting Fee:</strong> $${$('#consultingFees').val()}
+                `);
+            }
+        });
+
+        function generateTimeSlots(selectedDate) {
+            $('#timeSlots').html('<option value="">Loading time slots...</option>');
+
+            // Get doctor's working hours
+            const [startHour, startMinute] = currentDoctorDetails.timeStart.split(':').map(Number);
+            const [endHour, endMinute] = currentDoctorDetails.timeEnd.split(':').map(Number);
+
+            const startTime = new Date(selectedDate);
+            startTime.setHours(startHour, startMinute, 0, 0);
+
+            const endTime = new Date(selectedDate);
+            endTime.setHours(endHour, endMinute, 0, 0);
+
+            // Check existing appointments for this doctor on selected date
+            $.get('@Url.Action("GetExistingAppointments", "Patient")', {
+                doctorId: currentDoctorId,
+                appointmentDate: $('#appointmentDate').val()
+            }, function(existingAppointments) {
+                $('#timeSlots').empty();
+
+                if (existingAppointments.length >= 10) {
+                    $('#timeSlots').html('<option value="">No available slots (Max 10 patients reached)</option>');
+                    return;
+                }
+
+                // Generate all possible slots (every 10 minutes)
+                let currentSlot = new Date(startTime);
+                let serialNumber = 1;
+                let optionsHtml = '<option value="">Select time slot</option>';
+
+                while (currentSlot < endTime) {
+                    const timeString = currentSlot.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    const slotTaken = existingAppointments.some(a => a.ActualTime === timeString);
+
+                    if (!slotTaken) {
+                        optionsHtml += `<option value="${timeString}" data-serial="${serialNumber}">${timeString} (Serial ${serialNumber})</option>`;
+                        serialNumber++;
+                    }
+
+                    currentSlot.setMinutes(currentSlot.getMinutes() + 10);
+
+                    // Stop if we've reached max 10 patients
+                    if (serialNumber > 10) break;
+                }
+
+                $('#timeSlots').html(optionsHtml);
+
+                if ($('#timeSlots option').length <= 1) {
+                    $('#timeSlots').html('<option value="">No available slots</option>');
+                }
+            }).fail(function() {
+                $('#timeSlots').html('<option value="">Error loading time slots</option>');
+            });
+        }
+
+        // Form submission
+        $('#appointmentForm').submit(function(e) {
+            e.preventDefault();
+
+            if (!$('#appointmentDate').val() || !$('#timeSlots').val()) {
+                alert('Please select date and time slot');
+                return;
+            }
+
+            $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+
+            $.ajax({
+                url: $(this).attr('action'),
+                type: 'POST',
+                data: $(this).serialize(),
+                success: function(response) {
+                    if (response.success) {
+                        window.location.href = '@Url.Action("ViewAppointments", "Patient")?successMessage=' + encodeURIComponent(response.message);
+                    } else {
+                        alert(response.message);
+                        $('#submitBtn').prop('disabled', false).html('<i class="fas fa-save"></i> Confirm Appointment');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    alert('An error occurred: ' + error);
+                    $('#submitBtn').prop('disabled', false).html('<i class="fas fa-save"></i> Confirm Appointment');
+                }
+            });
+        });
+    });
+</script>

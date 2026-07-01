@@ -1,0 +1,54 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.Payment>
+
+@{
+    ViewBag.Title = "Payment History";
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+<div class="container">
+    <h2>Payment History</h2>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    <div class="table-responsive">
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Transaction ID</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Method</th>
+                    <th>Status</th>
+                    <th>Receipt</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var payment in Model)
+                {
+                    <tr>
+                        <td>@payment.TransactionId</td>
+                        <td>@payment.Created_at.ToString("dd MMM yyyy hh:mm tt")</td>
+                        <td>@payment.Amount.ToString("0.00") BDT</td>
+                        <td>@payment.PaymentMethod</td>
+                        <td>
+                            <span class="badge @(payment.Status == "Completed" ? "badge-success text-dark" :
+                      payment.Status == "Pending" ? "badge-warning" :
+                      payment.Status == "Failed" ? "badge-danger" : "badge-info")">
+                                @payment.Status
+                            </span>
+                        </td>
+                        <td>
+                            @Html.ActionLink("Download", "DownloadReceipt", new { id = payment.Id }, new { @class = "btn btn-sm btn-primary" })
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

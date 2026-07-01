@@ -1,0 +1,171 @@
+﻿@model WebApplicationDocLab.Models.Medical_History
+@{
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+    bool hasRecord = ViewBag.HasRecord ?? false;
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Medical History</h4>
+        </div>
+        <div class="card-body">
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["SuccessMessage"]
+                </div>
+            }
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger">
+                    @TempData["ErrorMessage"]
+                </div>
+            }
+
+            @using (Html.BeginForm(hasRecord ? "UpdateMedicalHistory" : "AddMedicalHistory", "Patient", FormMethod.Post, new { @class = "form-horizontal", id = "medicalForm" }))
+            {
+                @Html.AntiForgeryToken()
+
+                if (hasRecord)
+                {
+                    @Html.HiddenFor(model => model.Id)
+                    @Html.HiddenFor(model => model.PatientId)
+                }
+
+                <!-- Medical Conditions Checkboxes -->
+                <div class="form-group row">
+                    <label class="col-md-2 control-label">Medical Conditions</label>
+                    <div class="col-md-10" id="conditionsContainer">
+                        @foreach (var recordType in Enum.GetValues(typeof(WebApplicationDocLab.Models.RecordType)).Cast<WebApplicationDocLab.Models.RecordType>())
+                        {
+                            <div class="form-check">
+                                <input type="checkbox"
+                                       name="Record_Type"
+                                       value="@recordType"
+                                       class="form-check-input condition-checkbox"
+                                       @(Model.Record_Type != null && Model.Record_Type.Contains(recordType.ToString()) ? "checked" : "")
+                                       @(hasRecord ? "disabled" : "") />
+                                <label class="form-check-label">@recordType</label>
+                            </div>
+                        }
+                        @Html.ValidationMessageFor(model => model.Record_Type, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <!-- Description Field -->
+                <div class="form-group row">
+                    @Html.LabelFor(model => model.Description, "Description", new { @class = "col-md-2 control-label" })
+                    <div class="col-md-10">
+                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = "5", id = "descriptionField", disabled = hasRecord ? "disabled" : null })
+                        @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="form-group row">
+                    <div class="col-md-offset-2 col-md-10">
+                        <button type="submit" class="btn btn-primary" id="saveChangesBtn" @(hasRecord ? "disabled" : "")>
+                            Save Changes
+                        </button>
+
+                        <button type="button" class="btn btn-secondary" id="updateBtn" @(!hasRecord ? "disabled" : "")>
+                            Update
+                        </button>
+
+                        <button type="button" class="btn btn-warning" id="clearAllBtn" @(hasRecord ? "disabled" : "")>
+                            Clear All
+                        </button>
+
+                       
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+@if (hasRecord)
+{
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete your medical history record? This action cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                    @using (Html.BeginForm("DeleteMedicalHistory", "Patient", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.Hidden("id", Model.Id)
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Toastr notifications
+            if ('@TempData["SuccessMessage"]' != '') {
+                toastr.success('@TempData["SuccessMessage"]');
+            }
+            if ('@TempData["ErrorMessage"]' != '') {
+                toastr.error('@TempData["ErrorMessage"]');
+            }
+
+            // Current form state
+            let isEditMode = false;
+
+            // Update button click handler
+            $('#updateBtn').on('click', function() {
+                isEditMode = true;
+                enableFormEditing(true);
+                $(this).prop('disabled', true);
+            });
+
+            // Clear All button click handler
+            $('#clearAllBtn').on('click', function() {
+                $('.condition-checkbox').prop('checked', false);
+                $('#descriptionField').val('');
+            });
+
+            // Form submission handler
+            $('#medicalForm').on('submit', function(e) {
+                if (isEditMode) {
+                    // Change form action for update
+                    $(this).attr('action', '@Url.Action("UpdateMedicalHistory", "Patient")');
+                }
+
+                // Disable buttons during submission
+                $('#saveChangesBtn, #updateBtn, #clearAllBtn').prop('disabled', true);
+
+                return true; // Allow form to submit
+            });
+
+            // Enable/disable form editing
+            function enableFormEditing(enable) {
+                $('.condition-checkbox').prop('disabled', !enable);
+                $('#descriptionField').prop('disabled', !enable);
+                $('#saveChangesBtn').prop('disabled', !enable);
+                $('#clearAllBtn').prop('disabled', !enable);
+            }
+
+            // Initialize form state
+            enableFormEditing(!@hasRecord.ToString().ToLower());
+        });
+    </script>
+}

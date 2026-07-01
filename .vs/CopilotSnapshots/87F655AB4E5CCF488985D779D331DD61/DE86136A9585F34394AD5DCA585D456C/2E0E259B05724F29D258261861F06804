@@ -1,0 +1,466 @@
+﻿@using WebApplicationDocLab.Models
+
+@{
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+<!-- Add these in your head section or layout -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    :root {
+        --primary-color: #4e73df;
+        --secondary-color: #1cc88a;
+        --info-color: #36b9cc;
+        --warning-color: #f6c23e;
+    }
+
+    body {
+        background-color: #f8f9fc;
+        font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    .card {
+        border: none;
+        border-radius: 0.35rem;
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+        margin-bottom: 1.5rem;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 2rem 0 rgba(58, 59, 69, 0.2);
+        }
+
+    .card-header {
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    .bg-primary {
+        background-color: var(--primary-color) !important;
+    }
+
+    .bg-info {
+        background-color: var(--info-color) !important;
+    }
+
+    .bg-warning {
+        background-color: var(--warning-color) !important;
+    }
+
+    .btn {
+        border-radius: 0.35rem;
+        font-weight: 600;
+        padding: 0.5rem 1.25rem;
+        transition: all 0.3s;
+    }
+
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+
+    .btn-warning {
+        background-color: var(--warning-color);
+        border-color: var(--warning-color);
+        color: #212529;
+    }
+
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table thead th {
+            background-color: #f8f9fc;
+            border-bottom: 2px solid #e3e6f0;
+            color: #4e73df;
+            font-weight: 700;
+            padding: 1rem;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.5px;
+        }
+
+        .table tbody td {
+            border-top: 1px solid #e3e6f0;
+            padding: 1rem;
+            vertical-align: middle;
+        }
+
+    .table-striped tbody tr:nth-of-type(odd) {
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    .welcome-message {
+        color: #5a5c69;
+        font-weight: 700;
+        margin-bottom: 2rem;
+        position: relative;
+    }
+
+        .welcome-message::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--info-color));
+            margin-top: 10px;
+            border-radius: 2px;
+        }
+
+    .no-data {
+        text-align: center;
+        padding: 2rem;
+        color: #858796;
+    }
+
+        .no-data i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #dddfeb;
+        }
+
+    .prescription-highlight {
+        background-color: #f8f9fe;
+        border-left: 4px solid var(--info-color);
+        padding: 1.5rem;
+        border-radius: 0.35rem;
+        margin-bottom: 1rem;
+    }
+
+        .prescription-highlight .medicine {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--info-color);
+        }
+
+    .badge-serial {
+        background-color: var(--primary-color);
+        color: white;
+        font-weight: 700;
+        padding: 0.5em 0.8em;
+        border-radius: 50%;
+    }
+
+    .record-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 1rem;
+    }
+
+        .record-icon.primary {
+            background-color: rgba(78, 115, 223, 0.1);
+            color: var(--primary-color);
+        }
+
+        .record-icon.warning {
+            background-color: rgba(246, 194, 62, 0.1);
+            color: var(--warning-color);
+        }
+
+        .record-icon.info {
+            background-color: rgba(54, 185, 204, 0.1);
+            color: var(--info-color);
+        }
+</style>
+
+<div class="container mt-4">
+    <h2 class="welcome-message">Hello @Session["UserName"], Welcome to Your Dashboard</h2>
+
+    <!-- Recent Prescription Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-prescription me-2"></i>Your Recent Prescription</h4>
+            <small>Last Updated: @DateTime.Now.ToString("dd MMM yyyy")</small>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.RecentPrescription != null)
+            {
+                <div class="prescription-highlight">
+                    <div class="row align-items-center mb-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="record-icon info">
+                                    <i class="fas fa-user-md"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">Doctor</h5>
+                                    <p class="mb-0">
+                                        @ViewBag.RecentPrescription.Doctor_Details.User_Info.Title
+                                        @ViewBag.RecentPrescription.Doctor_Details.User_Info.FirstName
+                                        @ViewBag.RecentPrescription.Doctor_Details.User_Info.LastName
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="record-icon primary">
+                                    <i class="fas fa-calendar-day"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">Prescription Date</h5>
+                                    <p class="mb-0">@ViewBag.RecentPrescription.PrescriptionDate.ToString("dd MMM yyyy")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="d-flex align-items-center">
+                                <div class="record-icon warning">
+                                    <i class="fas fa-pills"></i>
+                                </div>
+                                <div>
+                                    <h5 class="mb-1">Medicine</h5>
+                                    <p class="mb-0 medicine">@ViewBag.RecentPrescription.Medicine.MedicineName</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3">
+                        <h5><i class="fas fa-comment-medical me-2"></i>Doctor's Notes</h5>
+                        <div class="alert alert-light" role="alert">
+                            @ViewBag.RecentPrescription.Notes
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <a href="@Url.Action("Prescriptions", "Patient")" class="btn btn-outline-info">
+                        <i class="fas fa-history me-1"></i> View All Prescriptions
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">
+                    <i class="fas fa-prescription-bottle-alt"></i>
+                    <h4 class="mt-3">No Prescriptions Found</h4>
+                    <p class="text-muted">You don't have any prescriptions yet. After your appointment, your prescriptions will appear here.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Appointments Section -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-calendar-check me-2"></i>Your Appointments</h4>
+            <span class="badge bg-white text-primary">@(ViewBag.Appointments?.Count ?? 0) Upcoming</span>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.Appointments != null && ViewBag.Appointments.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Date</th>
+                                <th>Time</th>
+                                <th>Serial</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var appointment in ViewBag.Appointments)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <img src="https://ui-avatars.com/api/?name=@(appointment.User_Info?.FirstName)+@(appointment.User_Info?.LastName)&background=4e73df&color=fff"
+                                                 class="rounded-circle me-3" width="40" height="40" alt="Doctor">
+                                            <div>
+                                                @if (appointment.User_Info != null)
+                                                {
+                                                    <h6 class="mb-0">@($"{appointment.User_Info.Title} {appointment.User_Info.FirstName} {appointment.User_Info.LastName}")</h6>
+                                                   @*<small class="text-muted">@appointment.Doctor_Details.Specialization</small>*@
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@appointment.Booking_Date.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <span class="badge bg-light text-dark">
+                                            <i class="fas fa-clock me-1"></i> @appointment.ActualTime.ToString(@"hh\:mm")
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-serial">@appointment.SerialNumber</span>
+                                    </td>
+                                    <td>
+                                        @if (appointment.Booking_Date >= DateTime.Today)
+                                        {
+                                            <span class="badge bg-success">Upcoming</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-secondary">Completed</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        <small class="text-muted">Showing @ViewBag.Appointments.Count upcoming appointments</small>
+                    </div>
+                    <a href="@Url.Action("AddAppointment", "Patient")" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i> Book New Appointment
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">
+                    <i class="fas fa-calendar-times"></i>
+                    <h4 class="mt-3">No Appointments Found</h4>
+                    <p class="text-muted">You don't have any upcoming appointments. Book one now to see it here.</p>
+                    <a href="@Url.Action("AddAppointment", "Patient")" class="btn btn-primary mt-3">
+                        <i class="fas fa-plus me-1"></i> Book Appointment
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Medical History Section -->
+    <div class="card">
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0"><i class="fas fa-notes-medical me-2"></i>Your Medical History</h4>
+            <span class="badge bg-white text-warning">@(ViewBag.MedicalHistory?.Count ?? 0) Records</span>
+        </div>
+        <div class="card-body">
+            @if (ViewBag.MedicalHistory != null && ViewBag.MedicalHistory.Count > 0)
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px"></th>
+                                <th>Record Type</th>
+                                <th>Description</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var record in ViewBag.MedicalHistory)
+                            {
+                                <tr>
+                                    <td>
+                                        @if (record.Record_Type == "Allergy")
+                                        {
+                                            <div class="record-icon warning">
+                                                <i class="fas fa-allergies"></i>
+                                            </div>
+                                        }
+                                        else if (record.Record_Type == "Surgery")
+                                        {
+                                            <div class="record-icon primary">
+                                                <i class="fas fa-procedures"></i>
+                                            </div>
+                                        }
+                                        else
+                                        {
+                                            <div class="record-icon info">
+                                                <i class="fas fa-file-medical"></i>
+                                            </div>
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@record.Record_Type</strong>
+                                    </td>
+                                    <td>
+                                        @if (record.Description.Length > 50)
+                                        {
+                                            <span class="d-inline-block text-truncate" style="max-width: 300px;"
+                                                  title="@record.Description">
+                                                @record.Description.Substring(0, 50)...
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @record.Description
+                                        }
+                                    </td>
+                                    <td>@record.Created_at.ToString("dd MMM yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="text-end mt-3">
+                    <a href="@Url.Action("MedicalRecords", "Patient")" class="btn btn-warning">
+                        <i class="fas fa-edit me-1"></i> @(ViewBag.MedicalHistory.Count > 0 ? "Update Medical History" : "Add Medical History")
+                    </a>
+                </div>
+            }
+            else
+            {
+                <div class="no-data">
+                    <i class="fas fa-file-medical-alt"></i>
+                    <h4 class="mt-3">No Medical Records Found</h4>
+                    <p class="text-muted">Your medical history helps doctors provide better care. Consider adding your health information.</p>
+                    <a href="@Url.Action("MedicalRecords", "Patient")" class="btn btn-warning mt-3">
+                        <i class="fas fa-plus me-1"></i> Add Medical History
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Add these before closing body tag or in your layout -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Add some interactive elements
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add tooltips
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Add animation to cards when they come into view
+        const cards = document.querySelectorAll('.card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        cards.forEach(card => {
+            card.style.opacity = 0;
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            observer.observe(card);
+        });
+
+        // Add click animation to buttons
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(button => {
+            button.addEventListener('click', function() {
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 150);
+            });
+        });
+    });
+</script>

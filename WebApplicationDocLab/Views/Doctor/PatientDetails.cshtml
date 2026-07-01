@@ -1,0 +1,597 @@
+﻿@model WebApplicationDocLab.Controllers.PatientDetailsViewModel
+@{
+    ViewBag.Title = "Patient Details";
+    Layout = "~/Views/_LayoutPageDoctor.cshtml";
+}
+
+<style>
+    .patient-details-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        padding-bottom: 40px;
+    }
+
+    .profile-card {
+        border-radius: 12px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        border: none;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+        .profile-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.8rem 1.5rem rgba(0, 0, 0, 0.15);
+        }
+
+    .profile-header {
+        background: linear-gradient(135deg, #4e73df, #224abe);
+        color: white;
+        padding: 20px;
+        position: relative;
+    }
+
+    .profile-image-container {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid white;
+        margin: 0 auto 15px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.2);
+    }
+
+    .profile-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .profile-name {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .patient-id {
+        font-size: 0.9rem;
+        opacity: 0.85;
+    }
+
+    .detail-item {
+        padding: 12px 15px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+
+    .detail-label {
+        font-weight: 500;
+        color: #6c757d;
+        margin-bottom: 3px;
+    }
+
+    .detail-value {
+        font-weight: 500;
+        color: #343a40;
+    }
+
+    .action-button {
+        border-radius: 30px;
+        padding: 8px 20px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .section-card {
+        border-radius: 12px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        border: none;
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .section-header {
+        background: linear-gradient(135deg, #4e73df, #224abe);
+        color: white;
+        padding: 15px 20px;
+        font-weight: 600;
+    }
+
+    .section-body {
+        padding: 20px;
+    }
+
+    .medical-history-card {
+        border-radius: 10px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        border: 1px solid #eee;
+        margin-bottom: 15px;
+        transition: all 0.3s ease;
+    }
+
+        .medical-history-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        }
+
+    .record-header {
+        padding: 12px 15px;
+        border-bottom: 1px solid #f1f1f1;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .record-type {
+        font-weight: 600;
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+    }
+
+    .record-type-allergy {
+        background-color: #ffebee;
+        color: #c62828;
+    }
+
+    .record-type-condition {
+        background-color: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .record-type-procedure {
+        background-color: #fff8e1;
+        color: #f57f17;
+    }
+
+    .record-type-vaccination {
+        background-color: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .record-type-medication {
+        background-color: #f3e5f5;
+        color: #6a1b9a;
+    }
+
+    .record-date {
+        color: #757575;
+        font-size: 0.85rem;
+    }
+
+    .record-body {
+        padding: 15px;
+    }
+
+    .record-description {
+        line-height: 1.6;
+        color: #424242;
+    }
+
+    .prescription-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .prescription-table th {
+            font-weight: 600;
+            color: #495057;
+            background-color: #f8f9fa;
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .prescription-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: top;
+        }
+
+        .prescription-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        margin: 20px 0;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+    .record-type-icon {
+        margin-right: 5px;
+    }
+
+    .breadcrumb-container {
+        background-color: white;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.05);
+        margin-bottom: 25px;
+    }
+
+    .medicine-list {
+        list-style-type: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .medicine-item {
+        margin-bottom: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px dashed #eee;
+    }
+
+    .medicine-name {
+        font-weight: 500;
+    }
+
+    .medicine-details {
+        font-size: 0.9rem;
+        color: #6c757d;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-view {
+        background-color: #4e73df;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        text-align: center;
+    }
+
+    .btn-print {
+        background-color: #1cc88a;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        padding: 6px 12px;
+        font-size: 0.9rem;
+        cursor: pointer;
+    }
+</style>
+
+<div class="patient-details-container">
+    <div class="container py-4">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb-container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="@Url.Action("Dashboard", "Doctor")"><i class="fas fa-home me-1"></i> Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="@Url.Action("Patients", "Doctor")"><i class="fas fa-user-injured me-1"></i> Patients</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <i class="fas fa-user me-1"></i>
+                        @(Model.PatientDetails.ContainsKey("Name") ? Model.PatientDetails["Name"] : "Patient Details")
+                    </li>
+                </ol>
+            </nav>
+        </div>
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["Error"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                @TempData["Success"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row">
+            <!-- Left Column - Patient Profile -->
+            <div class="col-lg-4 mb-4">
+                <div class="profile-card">
+                    <div class="profile-header text-center">
+                        <div class="profile-image-container">
+                            <img src="@Url.Content("~/Content/PatientImages/" + (Model.Patient.Image ?? "default-patient.png"))"
+                                 class="profile-image" alt="Patient Photo">
+                        </div>
+                        <h3 class="profile-name">@(Model.PatientDetails.ContainsKey("Name") ? Model.PatientDetails["Name"] : "Patient")</h3>
+                    </div>
+
+                    <div class="card-body">
+                        <!-- Contact Information -->
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-phone me-2 text-primary"></i> Phone</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Phone") ? Model.PatientDetails["Phone"] : "Not provided")</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-envelope me-2 text-primary"></i> Email</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Email") ? Model.PatientDetails["Email"] : "Not provided")</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-map-marker-alt me-2 text-primary"></i> Address</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Address") ? Model.PatientDetails["Address"] : "Not provided")</div>
+                        </div>
+
+                        <!-- Medical Information -->
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-tint me-2 text-danger"></i> Blood Group</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Blood Group") ? Model.PatientDetails["Blood Group"] : "Unknown")</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-birthday-cake me-2 text-info"></i> Date of Birth</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Date of Birth") ? Model.PatientDetails["Date of Birth"] : "Unknown")</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-birthday-cake me-2 text-info"></i> Age</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Age") ? Model.PatientDetails["Age"] + " years" : "Unknown")</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-venus-mars me-2 text-success"></i> Gender</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("Gender") ? Model.PatientDetails["Gender"] : "Not specified")</div>
+                        </div>
+
+                        <div class="detail-item">
+                            <div class="detail-label"><i class="fas fa-id-card me-2 text-secondary"></i> NID/Passport</div>
+                            <div class="detail-value">@(Model.PatientDetails.ContainsKey("NID/Passport") ? Model.PatientDetails["NID/Passport"] : "Not provided")</div>
+                        </div>
+
+                        <!-- Action Buttons - Only Create Prescription remains -->
+                        <div class="d-grid gap-2 mt-4">
+                            <a href="@Url.Action("CreatePrescription", "Doctor", new { patientId = Model.Patient.Id })"
+                               class="btn btn-primary action-button">
+                                <i class="fas fa-prescription me-1"></i> Create Prescription
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Medical Information -->
+            <div class="col-lg-8">
+                <!-- Medical History Section - Readonly View -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <i class="fas fa-notes-medical me-2"></i> Medical History
+                    </div>
+                    <div class="section-body">
+                        <h5 class="mb-3">Medical Records</h5>
+
+                        @if (Model.MedicalHistory.Any())
+                        {
+                            <div class="medical-history-list">
+                                @foreach (var record in Model.MedicalHistory.OrderByDescending(r => r.Created_at))
+                                {
+                                    <div class="medical-history-card">
+                                        <div class="record-header">
+                                            <span class="record-type @GetRecordTypeClass(record.Record_Type)">
+                                                <i class="fas @GetRecordTypeIcon(record.Record_Type) record-type-icon"></i>
+                                                @record.Record_Type
+                                            </span>
+                                            <span class="record-date">
+                                                <i class="far fa-clock me-1"></i>
+                                                @record.Created_at.ToString("MMM dd, yyyy h:mm tt")
+                                            </span>
+                                        </div>
+                                        <div class="record-body">
+                                            <p class="record-description">@record.Description</p>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-file-medical"></i>
+                                <h4 class="mt-3">No Medical Records Found</h4>
+                                <p class="text-muted">This patient has no documented medical history.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Prescriptions Section -->
+                <div class="section-card">
+                    <div class="section-header">
+                        <i class="fas fa-prescription me-2"></i> Prescriptions
+                    </div>
+                    <div class="section-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="mb-0">Prescription History</h5>
+                            <a href="@Url.Action("CreatePrescription", "Doctor", new { patientId = Model.Patient.Id })"
+                               class="btn btn-success action-button">
+                                <i class="fas fa-plus me-1"></i> New Prescription
+                            </a>
+                        </div>
+
+                        @if (Model.Prescriptions.Any())
+                        {
+                            <div class="table-responsive">
+                                <table class="prescription-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Medicines</th>
+                                            <th>Notes</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var rx in Model.Prescriptions.OrderByDescending(p => p.PrescriptionDate))
+                                        {
+                                            // Extract medicine information
+                                            var medicines = new List<dynamic>();
+                                            if (!string.IsNullOrEmpty(rx.Notes))
+                                            {
+                                                var lines = rx.Notes.Split('\n');
+                                                foreach (var line in lines)
+                                                {
+                                                    if (line.Contains("-") && !line.StartsWith("Medicines:"))
+                                                    {
+                                                        var parts = line.Split('-');
+                                                        if (parts.Length >= 3)
+                                                        {
+                                                            medicines.Add(new
+                                                            {
+                                                                Name = parts[0].Trim(),
+                                                                Dosage = parts[1].Trim(),
+                                                                Duration = parts[2].Trim()
+                                                            });
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            // Extract additional notes
+                                            var additionalNotes = "";
+                                            if (!string.IsNullOrEmpty(rx.Notes))
+                                            {
+                                                var lines = rx.Notes.Split('\n');
+                                                var notesStart = false;
+                                                foreach (var line in lines)
+                                                {
+                                                    if (string.IsNullOrWhiteSpace(line))
+                                                    {
+                                                        notesStart = true;
+                                                        continue;
+                                                    }
+                                                    if (notesStart)
+                                                    {
+                                                        additionalNotes += line + " ";
+                                                    }
+                                                }
+                                                additionalNotes = additionalNotes.Trim();
+                                            }
+
+                                            <tr>
+                                                <td>@rx.PrescriptionDate.ToString("MMM dd, yyyy")</td>
+                                                <td>
+                                                    @if (medicines.Any())
+                                                    {
+                                                        <ul class="medicine-list">
+                                                            @foreach (var med in medicines)
+                                                            {
+                                                                <li class="medicine-item">
+                                                                    <span class="medicine-name">@med.Name</span>
+                                                                    <span class="medicine-details">@med.Dosage - @med.Duration</span>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">No medicines listed</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (!string.IsNullOrEmpty(additionalNotes))
+                                                    {
+                                                        <div class="notes-preview">@additionalNotes</div>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="text-muted">No additional notes</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    <div class="action-buttons">
+                                                        <!-- HTML View Button -->
+                                                        <a href="@Url.Action("ViewPrescription", new { id = rx.Id })"
+                                                           class="btn-view" title="Quick View">
+                                                            <i class="fas fa-eye me-1"></i> View
+                                                        </a>
+
+                                                        <!-- PDF Download Button -->
+                                                        <a href="@Url.Action("DownloadPrescription", new { id = rx.Id })"
+                                                           class="btn-print" title="Download Printable Copy">
+                                                            <i class="fas fa-file-pdf me-1"></i> PDF
+                                                        </a>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state">
+                                <i class="fas fa-prescription-bottle-alt"></i>
+                                <h4 class="mt-3">No Prescriptions Found</h4>
+                                <p class="text-muted">Create a new prescription for this patient.</p>
+                                <a href="@Url.Action("CreatePrescription", "Doctor", new { patientId = Model.Patient.Id })"
+                                   class="btn btn-primary mt-2">
+                                    <i class="fas fa-plus me-1"></i> Create Prescription
+                                </a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    // Helper function to get CSS class for record type
+    string GetRecordTypeClass(string recordType)
+    {
+        switch (recordType)
+        {
+            case "Allergy": return "record-type-allergy";
+            case "Condition": return "record-type-condition";
+            case "Procedure": return "record-type-procedure";
+            case "Vaccination": return "record-type-vaccination";
+            case "Medication": return "record-type-medication";
+            default: return "";
+        }
+    }
+
+    // Helper function to get icon for record type
+    string GetRecordTypeIcon(string recordType)
+    {
+        switch (recordType)
+        {
+            case "Allergy": return "fa-allergies";
+            case "Condition": return "fa-stethoscope";
+            case "Procedure": return "fa-procedures";
+            case "Vaccination": return "fa-syringe";
+            case "Medication": return "fa-pills";
+            case "TestResult": return "fa-vial";
+            case "Symptom": return "fa-thermometer-half";
+            default: return "fa-file-medical";
+        }
+    }
+}

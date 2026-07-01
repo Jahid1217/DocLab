@@ -1,0 +1,245 @@
+﻿@model WebApplicationDocLab.Models.Prescription
+@{
+    ViewBag.Title = "Prescription Details";
+    Layout = "~/Views/_LayoutPageDoctor.cshtml";
+}
+
+<style>
+    .prescription-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Arial', sans-serif;
+    }
+
+    .header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .clinic-name {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+    }
+
+    .prescription-title {
+        font-size: 20px;
+        text-decoration: underline;
+        margin: 20px 0;
+    }
+
+    .section {
+        margin-bottom: 25px;
+    }
+
+    .section-title {
+        font-weight: bold;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+
+    .patient-info, .doctor-info {
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .info-item {
+        margin-bottom: 8px;
+    }
+
+    .info-label {
+        font-weight: bold;
+        display: inline-block;
+        width: 120px;
+    }
+
+    .medicines-list {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .medicines-list th {
+            background-color: #f8f9fa;
+            padding: 10px;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .medicines-list td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+    .signature-section {
+        margin-top: 50px;
+        text-align: right;
+    }
+
+    .signature-line {
+        border-top: 1px solid #000;
+        width: 300px;
+        display: inline-block;
+        margin-top: 60px;
+    }
+
+    .doctor-signature {
+        margin-top: 5px;
+        font-style: italic;
+    }
+
+    .footer-note {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #6c757d;
+        text-align: center;
+    }
+
+    @@media print {
+        body {
+            margin: 0;
+            padding: 20px;
+            font-size: 12pt;
+        }
+
+        .no-print {
+            display: none;
+        }
+
+        .prescription-container {
+            max-width: 100%;
+            padding: 10px;
+        }
+    }
+</style>
+
+<div class="prescription-container">
+    <div class="header">
+        <div class="clinic-name">DOCLAB MEDICAL CENTER</div>
+        <div>123 Medical Avenue, Health City, HC 12345</div>
+        <div>Phone: (123) 456-7890 | Email: info@doclab.com</div>
+    </div>
+
+    <div class="prescription-title">MEDICAL PRESCRIPTION</div>
+
+    <div class="section">
+        <div class="section-title">Patient Information</div>
+        <div class="patient-info">
+            <div>
+                <div class="info-item"><span class="info-label">Name:</span> @(Model.User_Info?.FirstName + " " + Model.User_Info?.LastName)</div>
+                <div class="info-item"><span class="info-label">Age:</span> @(Model.User_Info?.DateOfBirth != null ? (DateTime.Now.Year - Model.User_Info.DateOfBirth.Year).ToString() + " years" : "N/A")</div>
+                <div class="info-item"><span class="info-label">Gender:</span> @(Model.User_Info?.Gender.ToString() ?? "N/A")</div>
+            </div>
+            <div>
+                <div class="info-item"><span class="info-label">Date:</span> @Model.PrescriptionDate.ToString("MMM dd, yyyy")</div>
+                <div class="info-item"><span class="info-label">Prescription ID:</span> RX@(Model.Id.ToString("D5"))</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Medications</div>
+        <table class="medicines-list">
+            <thead>
+                <tr>
+                    <th>Medicine Name</th>
+                    <th>Dosage</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{
+                    // Parse medicine information from Notes field
+                    var medicines = new List<dynamic>();
+                    if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        var lines = Model.Notes.Split('\n');
+                        foreach (var line in lines)
+                        {
+                            if (line.Contains("-") && !line.StartsWith("Medicines:"))
+                            {
+                                var parts = line.Split('-');
+                                if (parts.Length >= 3)
+                                {
+                                    medicines.Add(new
+                                    {
+                                        Name = parts[0].Trim(),
+                                        Dosage = parts[1].Trim(),
+                                        Duration = parts[2].Trim()
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                @if (medicines.Any())
+                {
+                    foreach (var med in medicines)
+                    {
+                        <tr>
+                            <td>@med.Name</td>
+                            <td>@med.Dosage</td>
+                            <td>@med.Duration</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="3">No medications listed</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <div class="section-title">Additional Notes</div>
+        <p>
+            @{
+                // Extract additional notes (skip medicine lines)
+                string additionalNotes = "";
+                if (!string.IsNullOrEmpty(Model.Notes))
+                {
+                    var lines = Model.Notes.Split('\n');
+                    bool isAfterMedicines = false;
+
+                    foreach (var line in lines)
+                    {
+                        if (string.IsNullOrWhiteSpace(line))
+                        {
+                            isAfterMedicines = true;
+                        }
+
+                        if (isAfterMedicines && !line.StartsWith("Medicines:"))
+                        {
+                            additionalNotes += line + "\n";
+                        }
+                    }
+                }
+            }
+            @additionalNotes.Trim()
+        </p>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-line"></div>
+        <div class="doctor-signature">
+            @ViewBag.DoctorName<br>
+            @ViewBag.DoctorSpecialization<br>
+            Reg. No: @ViewBag.DoctorRegistrationNo
+        </div>
+    </div>
+
+    <div class="footer-note">
+        <p>This is a computer-generated prescription. No physical signature is required.</p>
+        <p>Valid for 30 days from the date of issue.</p>
+    </div>
+
+    <div class="no-print" style="margin-top: 30px; text-align: center;">
+        <button onclick="window.print()" class="btn btn-primary">Print Prescription</button>
+        <a href="@Url.Action("PatientDetails", "Doctor", new { id = Model.PatientId })" class="btn btn-secondary">Back to Patient</a>
+    </div>
+</div>

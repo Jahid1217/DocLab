@@ -1,0 +1,41 @@
+﻿@model WebApplicationDocLab.Models.Prescription
+
+@{
+    ViewBag.Title = "Prescriptions";
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Most Recent Prescription</h4>
+        </div>
+        <div class="card-body">
+            @if (Model != null)
+            {
+                <div>
+                    <!-- Display Doctor's Name from Doctor_Details -->
+                    <h5>
+                        Doctor:
+                        @if (Model.Doctor_Details?.User_Info != null)
+                        {
+                            @($"{Model.Doctor_Details.User_Info.FirstName} {Model.Doctor_Details.User_Info.LastName}")
+                        }
+                        else
+                        {
+                            <span>Information unavailable</span>
+                        }
+                    </h5>
+                    <p><strong>Prescription Date:</strong> @Model.PrescriptionDate.ToShortDateString()</p>
+                    <p><strong>Notes:</strong> @(string.IsNullOrWhiteSpace(Model.Notes) ? "No notes provided." : Model.Notes)</p>
+                    <!-- Display Medicine Name from Medicine -->
+                    <p><strong>Medicine:</strong> @(Model.Medicine?.MedicineName ?? "See prescription details")</p>
+                </div>
+            }
+            else
+            {
+                <p>No prescriptions found.</p>
+            }
+        </div>
+    </div>
+</div>

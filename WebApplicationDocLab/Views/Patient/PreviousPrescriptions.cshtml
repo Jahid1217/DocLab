@@ -1,0 +1,39 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.Prescription>
+@{
+    ViewBag.Title = "PreviousPrescriptions";
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4>Previous Prescriptions</h4>
+        </div>
+        <div class="card-body">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var prescription in Model)
+                {
+                    <div class="mb-3">
+                        <!-- Display Medicine Name from Medicine with null check -->
+                        <p><strong>Medicine:</strong> @(prescription.Medicine != null ? prescription.Medicine.MedicineName : "No Medicine Assigned")</p>
+                        <!-- Display Prescription Date -->
+                        <p><strong>Prescription Date:</strong> @prescription.PrescriptionDate.ToShortDateString()</p>
+                        <!-- Display Doctor's Name from Doctor_Details with null check -->
+                        <p>
+                            <strong>Doctor:</strong> @(prescription.Doctor_Details != null && prescription.Doctor_Details.User_Info != null
+                            ? prescription.Doctor_Details.User_Info.FirstName + " " + prescription.Doctor_Details.User_Info.LastName
+                            : "No Doctor Assigned")
+                        </p>
+                        <hr />
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No previous prescriptions found.</p>
+            }
+        </div>
+    </div>
+</div>

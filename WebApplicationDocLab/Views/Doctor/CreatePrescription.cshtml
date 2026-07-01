@@ -1,0 +1,338 @@
+﻿@model WebApplicationDocLab.Models.Prescription
+
+@{
+    ViewBag.Title = "Create Prescription";
+    Layout = "~/Views/_LayoutPageDoctor.cshtml";
+    var medicineList = ViewBag.Medicine as List<WebApplicationDocLab.Models.Medicine>;
+    var testList = ViewBag.Test as List<WebApplicationDocLab.Models.Test>;
+}
+
+<style>
+    .prescription-card {
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .patient-info-card {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+
+    .cart-header {
+        font-weight: 600;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .cart-container {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 15px;
+        min-height: 100px;
+    }
+
+    .empty-cart-message {
+        padding: 15px;
+        text-align: center;
+    }
+
+    .search-results {
+        position: absolute;
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        z-index: 1000;
+        background: white;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        display: none;
+    }
+
+    .search-item {
+        padding: 8px 12px;
+        cursor: pointer;
+    }
+
+        .search-item:hover {
+            background-color: #f8f9fa;
+        }
+
+    .medicine-row, .test-row {
+        margin-bottom: 15px;
+    }
+</style>
+
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card prescription-card">
+                <div class="card-header py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h3 class="mb-0"><i class="fas fa-prescription me-2"></i>Create New Prescription</h3>
+                        <a href="@Url.Action("PatientDetails", new { id = Model.PatientId })" class="btn btn-light">
+                            <i class="fas fa-arrow-left me-1"></i> Back to Patient
+                        </a>
+                    </div>
+                </div>
+
+                <div class="card-body">
+                    @using (Html.BeginForm("CreatePrescription", "Doctor", FormMethod.Post, new { @class = "needs-validation", novalidate = "novalidate", id = "prescriptionForm" }))
+                    {
+                        @Html.AntiForgeryToken()
+                        @Html.HiddenFor(model => model.DoctorId)
+                        @Html.HiddenFor(model => model.PatientId)
+                        @Html.HiddenFor(model => model.PrescriptionDate)
+                        @Html.Hidden("medicineData", "", new { id = "medicineData" })
+                        @Html.Hidden("testData", "", new { id = "testData" })
+
+                        <!-- Patient Information -->
+                        <div class="patient-info-card">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small mb-1">Patient</label>
+                                    <div class="fw-bold fs-5">@ViewBag.PatientName</div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label text-muted small mb-1">Date</label>
+                                    <div class="fw-bold fs-5">@DateTime.Now.ToString("MMM dd, yyyy")</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tests Section -->
+                        <div class="mb-4">
+                            <label class="form-label">Select Tests</label>
+                            <div class="input-group">
+                                <select class="form-control" id="testSelect">
+                                    @if (testList != null && testList.Any())
+                                    {
+                                        <option value="" disabled selected>-- Select Test --</option>
+                                        foreach (var test in testList)
+                                        {
+                                            <option value="@test.Id">@test.TestName</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="" disabled selected>No tests available</option>
+                                    }
+                                </select>
+                                <button type="button" id="addTest" class="btn btn-primary">Add to Test Cart</button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label cart-header">Test Cart</label>
+                            <div id="testCart" class="cart-container">
+                                <div class="empty-cart-message text-muted">No tests added yet</div>
+                            </div>
+                        </div>
+
+                        <!-- Medicines Section -->
+                        <div class="mb-4">
+                            <label class="form-label">Select Medicines</label>
+                            <div class="input-group">
+                                <select class="form-control" id="medicineSelect">
+                                    @if (medicineList != null && medicineList.Any())
+                                    {
+                                        <option value="" disabled selected>-- Select Medicine --</option>
+                                        foreach (var med in medicineList)
+                                        {
+                                            <option value="@med.Id">@med.MedicineName (@med.GenericName)</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="" disabled selected>No medicines available</option>
+                                    }
+                                </select>
+                                <button type="button" id="addMedicine" class="btn btn-primary">Add to Cart</button>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label cart-header">Medicine Cart</label>
+                            <div id="medicineCart" class="cart-container">
+                                <div class="empty-cart-message text-muted">No medicines added yet</div>
+                            </div>
+                        </div>
+
+                        <!-- Notes Section -->
+                        <div class="mb-4">
+                            <h5 class="mb-3"><i class="fas fa-notes-medical me-2"></i>Additional Notes</h5>
+                            @Html.TextAreaFor(model => model.Notes, new
+                            {
+                                @class = "form-control",
+                                rows = 4,
+                                placeholder = "Enter additional instructions, diagnosis, observations, etc...",
+                                id = "prescriptionNotes"
+                            })
+                            @Html.ValidationMessageFor(model => model.Notes, "", new { @class = "text-danger" })
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="d-flex justify-content-end gap-3 pt-3">
+                            <a href="@Url.Action("PatientDetails", new { id = Model.PatientId })" class="btn btn-lg btn-secondary px-4">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-lg btn-primary px-4" id="btnSubmit">
+                                <i class="fas fa-save me-2"></i> Save Prescription
+                            </button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+    $(document).ready(function () {
+        const medicineCart = {};
+        const testCart = {};
+
+        // Add medicine to cart
+        $('#addMedicine').click(function () {
+            const medicineId = $('#medicineSelect').val();
+            if (!medicineId) {
+                alert('Please select a medicine first');
+                return;
+            }
+
+            if (medicineCart[medicineId]) {
+                alert('This medicine is already in the cart');
+                return;
+            }
+
+            const medicineName = $('#medicineSelect option:selected').text();
+            medicineCart[medicineId] = {
+                Id: medicineId,
+                Name: medicineName,
+                Dosage: '1 tablet',
+                Duration: '7 days'
+            };
+
+            updateMedicineCartDisplay();
+            updateHiddenFields();
+        });
+
+        // Add test to cart
+        $('#addTest').click(function () {
+            const testId = $('#testSelect').val();
+            if (!testId) {
+                alert('Please select a test first');
+                return;
+            }
+
+            if (testCart[testId]) {
+                alert('This test is already in the cart');
+                return;
+            }
+
+            const testName = $('#testSelect option:selected').text();
+            testCart[testId] = {
+                Id: testId,
+                Name: testName
+            };
+
+            updateTestCartDisplay();
+            updateHiddenFields();
+        });
+
+        // Remove medicine
+        $('#medicineCart').on('click', '.remove-medicine', function () {
+            const medicineId = $(this).data('id');
+            delete medicineCart[medicineId];
+            updateMedicineCartDisplay();
+            updateHiddenFields();
+        });
+
+        // Remove test
+        $('#testCart').on('click', '.remove-test', function () {
+            const testId = $(this).data('id');
+            delete testCart[testId];
+            updateTestCartDisplay();
+            updateHiddenFields();
+        });
+
+        // Update dosage/duration
+        $('#medicineCart').on('change', '.medicine-dosage, .medicine-duration', function () {
+            const medicineId = $(this).closest('.medicine-item').data('id');
+            if (medicineCart[medicineId]) {
+                medicineCart[medicineId].Dosage = $(this).closest('.medicine-item').find('.medicine-dosage').val();
+                medicineCart[medicineId].Duration = $(this).closest('.medicine-item').find('.medicine-duration').val();
+                updateHiddenFields();
+            }
+        });
+
+        function updateMedicineCartDisplay() {
+            const $cart = $('#medicineCart');
+            $cart.empty();
+
+            if (Object.keys(medicineCart).length === 0) {
+                $cart.append('<div class="empty-cart-message text-muted">No medicines added yet</div>');
+                return;
+            }
+
+            for (const [id, med] of Object.entries(medicineCart)) {
+                $cart.append(`
+            <div class="medicine-item mb-2 p-2 border rounded" data-id="${id}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong>${med.Name}</strong><br />
+                        <div class="d-flex gap-2 mt-2">
+                            <input type="text" class="form-control form-control-sm medicine-dosage" placeholder="Dosage" value="${med.Dosage}" />
+                            <input type="text" class="form-control form-control-sm medicine-duration" placeholder="Duration" value="${med.Duration}" />
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-danger remove-medicine" data-id="${id}">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+        `);
+            }
+        }
+
+        function updateTestCartDisplay() {
+            const $cart = $('#testCart');
+            $cart.empty();
+
+            if (Object.keys(testCart).length === 0) {
+                $cart.append('<div class="empty-cart-message text-muted">No tests added yet</div>');
+                return;
+            }
+
+            for (const [id, test] of Object.entries(testCart)) {
+                $cart.append(`
+                        <div class="test-item mb-2 p-2 border rounded d-flex justify-content-between align-items-center" data-id="${id}">
+                            <span>${test.Name}</span>
+                            <button type="button" class="btn btn-sm btn-danger remove-test" data-id="${id}">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `);
+            }
+        }
+
+        function updateHiddenFields() {
+            $('#medicineData').val(JSON.stringify(Object.values(medicineCart)));
+            $('#testData').val(JSON.stringify(Object.values(testCart)));
+        }
+
+        $('#prescriptionForm').submit(function (e) {
+            if (Object.keys(medicineCart).length === 0 && Object.keys(testCart).length === 0) {
+                e.preventDefault();
+                alert('Please add at least one medicine or test before saving');
+                return false;
+            }
+            updateHiddenFields();
+            return true;
+        });
+    });
+</script>
+

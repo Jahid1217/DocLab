@@ -1,0 +1,109 @@
+@model IEnumerable<WebApplicationDocLab.Models.AppointmentViewModel>
+
+@{
+    ViewBag.Title = "Appointments";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<div class="appointments-container">
+    <div class="appointments-header">
+        <h2><i class="fas fa-calendar-alt"></i> Appointments Management</h2>
+        <div class="appointments-actions">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="appointmentSearch" placeholder="Search appointments...">
+                <button id="clearSearch" class="btn-clear">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-container">
+                <select id="filterStatus" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                <select id="filterDoctorType" class="form-select">
+                    <option value="">All Specialties</option>
+                    <option value="Cardiologist">Cardiologist</option>
+                    <option value="Dermatologist">Dermatologist</option>
+                    <!-- Add more doctor types as needed -->
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="appointments-table" id="appointmentsTable">
+            <thead>
+                <tr>
+                    <th data-sort="number">#</th>
+                    <th data-sort="patient">Patient</th>
+                    <th data-sort="doctor">Doctor</th>
+                    <th data-sort="type">Specialty</th>
+                    <th data-sort="date">Date</th>
+                    <th data-sort="time">Time</th>
+                </tr>
+            </thead>
+            <tbody id="appointmentsTbody">
+                @if (Model != null && Model.Any())
+                {
+                    int i = 1;
+                    foreach (var item in Model)
+                    {
+                        <tr data-status="@(item.Booking_Date < DateTime.Today ? "Completed" : "Upcoming")" data-specialty="@item.BookType" data-patient="@item.PatientName" data-doctor="@item.DoctorName">
+                            <td>@i</td>
+                            <td>
+                                <div class="patient-info">
+                                    <span class="patient-name">@item.PatientName</span>
+                                    <span class="patient-id">ID: @item.PatientId</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="doctor-info">
+                                    <span class="doctor-name">@item.DoctorName</span>
+                                    <span class="doctor-id">ID: @item.DoctorId</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="specialty-badge @item.BookType.ToLower()">@item.BookType</span>
+                            </td>
+                            <td>@item.Booking_Date.ToString("yyyy-MM-dd")</td>
+                            <td>@item.ActualTime.ToString(@"hh\:mm")</td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="no-appointments">
+                            <i class="fas fa-calendar-times"></i>
+                            <span>No appointments found</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <div class="showing-entries">
+            Showing <span id="showingCount">0</span> of <span id="totalCount">@Model.Count()</span> entries
+        </div>
+        <div class="pagination-container">
+            <button id="prevPage" class="btn-pagination" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextPage" class="btn-pagination" disabled>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="~/Content/admin-appointments.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="~/Scripts/admin-appointments.js"></script>

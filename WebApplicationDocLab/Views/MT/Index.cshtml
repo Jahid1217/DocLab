@@ -1,0 +1,212 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.Test>
+@{
+    ViewBag.Title = "Test Management";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<link href="~/Page/css/MT_Index.css" rel="stylesheet">
+
+<div class="test-management-container">
+    <div class="page-header">
+        <h2><i class="fas fa-vial"></i> Test Management</h2>
+        <div class="header-actions">
+            <a href="@Url.Action("Create")" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create New
+            </a>
+        </div>
+    </div>
+
+    <div class="search-filter-container">
+        <div class="input-group search-box">
+            <input type="text" id="searchInput" class="form-control" placeholder="Search tests...">
+            <div class="input-group-append">
+                <button class="btn btn-outline-secondary" type="button" id="searchButton">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="btn btn-outline-secondary" type="button" id="clearSearch">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover" id="testsTable">
+            <thead class="thead-light">
+                <tr>
+                    <th>
+                        @Html.DisplayNameFor(model => model.TestName)
+                        <i class="fas fa-sort sort-icon" data-column="0"></i>
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Category)
+                        <i class="fas fa-sort sort-icon" data-column="1"></i>
+                    </th>
+                    <th>
+                        @Html.DisplayNameFor(model => model.Created_at)
+                        <i class="fas fa-sort sort-icon" data-column="2"></i>
+                    </th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@Html.DisplayFor(modelItem => item.TestName)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Category)</td>
+                        <td>@Html.DisplayFor(modelItem => item.Created_at)</td>
+                        <td class="action-buttons">
+                            <a href="@Url.Action("Edit", new { id = item.Id })" class="btn btn-sm btn-outline-primary" title="Edit">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-sm btn-outline-info" title="Details">
+                                <i class="fas fa-info-circle"></i>
+                            </a>
+                            <a href="@Url.Action("Delete", new { id = item.Id })" class="btn btn-sm btn-outline-danger" title="Delete">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <div class="table-info" id="tableInfo">
+            Showing @Model.Count() items
+        </div>
+    </div>
+</div>
+
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+<script>
+    $(document).ready(function () {
+        // Store original row count
+        var totalItems = $('#testsTable tbody tr').length;
+
+        // Search functionality
+        $('#searchInput').on('keyup', function () {
+            performSearch($(this).val().trim().toLowerCase());
+        });
+
+        $('#searchButton').click(function () {
+            performSearch($('#searchInput').val().trim().toLowerCase());
+        });
+
+        $('#clearSearch').click(function () {
+            $('#searchInput').val('');
+            performSearch('');
+        });
+
+        function performSearch(searchText) {
+            var visibleCount = 0;
+            var hasResults = false;
+
+            // Show all rows if search is empty
+            if (searchText === '') {
+                $('#testsTable tbody tr').show();
+                $('#noResultsRow').remove();
+                $('#tableInfo').text('Showing ' + totalItems + ' items');
+                return;
+            }
+
+            // Search through each row
+            $('#testsTable tbody tr').each(function() {
+                if ($(this).attr('id') === 'noResultsRow') return;
+
+                var rowText = '';
+                // Get text from first three columns (skip actions column)
+                $(this).find('td').slice(0, 3).each(function() {
+                    rowText += $(this).text().toLowerCase() + ' ';
+                });
+
+                if (rowText.indexOf(searchText) > -1) {
+                    $(this).show();
+                    visibleCount++;
+                    hasResults = true;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            // Show no results message if needed
+            if (!hasResults) {
+                if ($('#noResultsRow').length === 0) {
+                    $('#testsTable tbody').append('<tr id="noResultsRow"><td colspan="4" class="no-results">No matching tests found</td></tr>');
+                }
+            } else {
+                $('#noResultsRow').remove();
+            }
+
+            $('#tableInfo').text('Showing ' + visibleCount + ' of ' + totalItems + ' items');
+        }
+
+        // Rest of your existing code (sorting, delete confirmation, etc.)
+        $('.sort-icon').click(function () {
+            var column = $(this).data('column');
+            var table = $('#testsTable');
+            var rows = table.find('tbody > tr').not('#noResultsRow').get();
+            var isAsc = $(this).hasClass('asc');
+
+            // Remove all sort classes
+            $('.sort-icon').removeClass('asc desc');
+
+            // Sort rows
+            rows.sort(function (a, b) {
+                var aVal = $(a).find('td').eq(column).text().toLowerCase();
+                var bVal = $(b).find('td').eq(column).text().toLowerCase();
+
+                if (column === 2) { // For date column
+                    aVal = new Date(aVal);
+                    bVal = new Date(bVal);
+                    return isAsc ? aVal - bVal : bVal - aVal;
+                } else {
+                    return isAsc ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+                }
+            });
+
+            // Toggle sort direction
+            $(this).addClass(isAsc ? 'desc' : 'asc');
+
+            // Rebuild table
+            $.each(rows, function (index, row) {
+                table.children('tbody').append(row);
+            });
+        });
+
+        $(document).on('click', '.btn-outline-danger', function (e) {
+            e.preventDefault();
+            var deleteUrl = $(this).attr('href');
+
+            Swal.fire({
+                title: 'Are you sure?',
+                text: "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Yes, delete it!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = deleteUrl;
+                }
+            });
+        });
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <text>
+            Swal.fire({
+                title: 'Success!',
+                text: '@TempData["SuccessMessage"]',
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+            </text>
+        }
+    });
+</script>

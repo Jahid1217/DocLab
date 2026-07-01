@@ -1,0 +1,174 @@
+﻿@model WebApplicationDocLab.Models.Medicine
+
+@{
+    ViewBag.Title = "Create Medicine";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+<link href="~/Page/css/Medicine_Create.css" rel="stylesheet">
+
+<div class="create-container">
+    <div class="create-header">
+        <h2><i class="fas fa-plus-circle"></i> Add New Medicine</h2>
+    </div>
+
+    @using (Html.BeginForm("Create", "Medicine", FormMethod.Post, new { @class = "create-form", id = "createForm", enctype = "multipart/form-data" }))
+    {
+        @Html.AntiForgeryToken()
+
+<div class="form-container">
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger alert-dismissible fade show validation-summary" role="alert">
+            @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    }
+
+    <div class="form-group row">
+        @Html.LabelFor(model => model.MedicineName, htmlAttributes: new { @class = "col-form-label col-md-3" })
+        <div class="col-md-9">
+            @Html.EditorFor(model => model.MedicineName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter medicine name", required = "required" } })
+            @Html.ValidationMessageFor(model => model.MedicineName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(model => model.GenericName, htmlAttributes: new { @class = "col-form-label col-md-3" })
+        <div class="col-md-9">
+            @Html.EditorFor(model => model.GenericName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter medicine Generic Name", required = "required" } })
+            @Html.ValidationMessageFor(model => model.GenericName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(model => model.MedicineCategory, htmlAttributes: new { @class = "col-form-label col-md-3" })
+        <div class="col-md-9">
+            @Html.EditorFor(model => model.MedicineCategory, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter category", required = "required" } })
+            @Html.ValidationMessageFor(model => model.MedicineCategory, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+
+    <div class="form-group row">
+        @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "col-form-label col-md-3" })
+        <div class="col-md-9">
+            @Html.TextAreaFor(model => model.Description, new { @class = "form-control", rows = "3", placeholder = "Enter detailed description" })
+            @Html.ValidationMessageFor(model => model.Description, "", new { @class = "text-danger" })
+            <small class="form-text text-muted">Maximum 500 characters</small>
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(model => model.Category, htmlAttributes: new { @class = "col-form-label col-md-3" })
+        <div class="col-md-9">
+            @Html.EditorFor(model => model.Category, new { htmlAttributes = new { @class = "form-control", placeholder = "Optional additional category" } })
+            @Html.ValidationMessageFor(model => model.Category, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        @Html.LabelFor(model => model.BrandName, htmlAttributes: new { @class = "col-form-label col-md-3" })
+        <div class="col-md-9">
+            @Html.EditorFor(model => model.BrandName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter medicine name", required = "required" } })
+            @Html.ValidationMessageFor(model => model.BrandName, "", new { @class = "text-danger" })
+        </div>
+    </div>
+
+    <div class="form-group row">
+        <label class="col-form-label col-md-3">Medicine Image</label>
+        <div class="col-md-9">
+            <div class="custom-file">
+                <input type="file" class="custom-file-input" id="ImageFile" name="ImageFile" accept="image/*" required>
+                <label class="custom-file-label" for="ImageFile"></label>
+            </div>
+            <small class="form-text text-muted">Upload a clear image of the medicine (JPEG, PNG)</small>
+            @Html.ValidationMessage("ImageFile", "", new { @class = "text-danger" })
+
+            <div class="image-preview mt-3" id="imagePreviewContainer" style="display:none;">
+                <img id="imagePreview" src="#" alt="Preview" class="img-thumbnail" style="max-height: 200px;">
+                <button type="button" class="btn btn-sm btn-outline-danger mt-2" id="removeImage">Remove Image</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary submit-btn">
+            <i class="fas fa-save"></i> Create Medicine
+        </button>
+        <a href="@Url.Action("Index")" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to List
+        </a>
+    </div>
+</div>
+    }
+</div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.3/jquery.validate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validation-unobtrusive/3.2.12/jquery.validate.unobtrusive.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bs-custom-file-input/dist/bs-custom-file-input.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Initialize Bootstrap custom file input
+        bsCustomFileInput.init();
+
+        // Image preview functionality
+        $('#ImageFile').change(function () {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imagePreview').attr('src', e.target.result);
+                    $('#imagePreviewContainer').show();
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Remove image preview
+        $('#removeImage').click(function () {
+            $('#ImageFile').val('');
+            $('#imagePreview').attr('src', '#');
+            $('#imagePreviewContainer').hide();
+            $('.custom-file-label').text('Choose file...');
+        });
+
+        // Form validation
+        $("#createForm").validate({
+            rules: {
+                MedicineName: "required",
+                MedicineCategory: "required",
+                ImageFile: "required"
+            },
+            messages: {
+                MedicineName: "Please enter medicine name",
+                MedicineCategory: "Please enter category",
+                ImageFile: "Please select an image"
+            },
+            errorElement: 'span',
+            errorClass: 'text-danger',
+            highlight: function (element, errorClass) {
+                $(element).addClass('is-invalid');
+            },
+            unhighlight: function (element, errorClass) {
+                $(element).removeClass('is-invalid');
+            }
+        });
+
+        // File type validation
+        $('#ImageFile').on('change', function () {
+            var fileInput = $(this)[0];
+            if (fileInput.files.length > 0) {
+                var file = fileInput.files[0];
+                var validTypes = ['image/jpeg', 'image/png'];
+                if (validTypes.indexOf(file.type) === -1) {
+                    $(this).addClass('is-invalid');
+                    $(this).next('.invalid-feedback').text('Please upload a valid image file (JPEG, PNG)');
+                }
+            }
+        });
+    });
+</script>

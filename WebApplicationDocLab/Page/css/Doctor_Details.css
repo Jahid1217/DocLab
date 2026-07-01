@@ -1,0 +1,186 @@
+﻿/* Main Container */
+.doctor-management-container {
+	background-color: #f8f9fa;
+	padding: 30px;
+	border-radius: 8px;
+	box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* Search Box Styling */
+.search-container {
+	position: relative;
+	margin-bottom: 25px;
+	max-width: 400px;
+}
+
+	.search-container i {
+		position: absolute;
+		left: 15px;
+		top: 12px;
+		color: #5490cc;
+	}
+
+.search-input {
+	padding-left: 40px;
+	border-radius: 25px;
+	border: 1px solid #ced4da;
+	transition: all 0.3s;
+}
+
+	.search-input:focus {
+		border-color: #5490cc;
+		box-shadow: 0 0 0 0.2rem rgba(84, 144, 204, 0.25);
+	}
+
+/* Table Styling */
+.doctor-table {
+	width: 100%;
+	border-collapse: separate;
+	border-spacing: 0;
+	background: white;
+	border-radius: 8px;
+	overflow: hidden;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+	.doctor-table thead th {
+		background-color: #5490cc;
+		color: white;
+		padding: 15px;
+		font-weight: 500;
+		text-transform: uppercase;
+		font-size: 0.85rem;
+		letter-spacing: 0.5px;
+		border: none;
+	}
+
+	.doctor-table tbody td {
+		padding: 12px 15px;
+		vertical-align: middle;
+		border-bottom: 1px solid #e9ecef;
+	}
+
+	.doctor-table tbody tr:last-child td {
+		border-bottom: none;
+	}
+
+	.doctor-table tbody tr:hover {
+		background-color: rgba(84, 144, 204, 0.1);
+	}
+
+/* Status Badges */
+.status-badge {
+	padding: 5px 10px;
+	border-radius: 20px;
+	font-size: 0.75rem;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: 0.5px;
+}
+
+.status-active {
+	background-color: #e8f5e9;
+	color: #2e7d32;
+}
+
+.status-inactive {
+	background-color: #ffebee;
+	color: #c62828;
+}
+
+/* Action Buttons */
+.action-buttons .btn {
+	min-width: 100px;
+	margin: 2px;
+	font-size: 0.8rem;
+	font-weight: 500;
+	padding: 6px 12px;
+	border-radius: 4px;
+	transition: all 0.2s;
+}
+
+.btn-status {
+	background-color: #3498db;
+	border-color: #3498db;
+}
+
+	.btn-status:hover {
+		background-color: #2980b9;
+		border-color: #2980b9;
+	}
+
+.btn-details {
+	background-color: #2ecc71;
+	border-color: #2ecc71;
+}
+
+	.btn-details:hover {
+		background-color: #27ae60;
+		border-color: #27ae60;
+	}
+
+/* Modal Styling */
+.modal-header {
+	background-color: #348eeb;
+	color: white;
+	border-radius: 0;
+}
+
+.modal-title {
+	font-weight: 500;
+}
+
+.detail-label {
+	font-weight: 600;
+	color: #468acf;
+	min-width: 120px;
+	display: inline-block;
+}
+
+/* No Results Message */
+.no-results {
+	display: none;
+	text-align: center;
+	padding: 20px;
+	background: white;
+	border-radius: 8px;
+	margin-top: 20px;
+}
+
+/* Responsive Adjustments */
+@@media (max-width: 768px) {
+	.doctor-table thead {
+		display: none;
+	}
+
+	.doctor-table tbody td {
+		display: block;
+		text-align: right;
+		padding-left: 50%;
+		position: relative;
+	}
+
+		.doctor-table tbody td:before {
+			content: attr(data-label);
+			position: absolute;
+			left: 15px;
+			width: 45%;
+			padding-right: 10px;
+			font-weight: 600;
+			text-align: left;
+		}
+
+	.action-buttons {
+		text-align: center !important;
+	}
+
+		.action-buttons .btn {
+			display: block;
+			width: 100%;
+			margin: 5px 0;
+		}
+
+	.search-container {
+		max-width: 50%;
+	}
+}

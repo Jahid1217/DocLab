@@ -1,0 +1,48 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.BookingAppointment>
+
+@{
+    ViewBag.Title = "Appointments";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<div class="container mt-4">
+    <h2 class="mb-4">Appointments</h2>
+    <table class="table table-bordered table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>#</th>
+                <th>Patient</th>
+                <th>Doctor</th>
+                <th>Doctor Type</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model != null && Model.Any())
+        {
+            int i = 1;
+            foreach (var item in Model)
+            {
+                <tr>
+                    <td>@i</td>
+                    <td>@item.PatientName</td>
+                    <td>@item.DoctorName</td>
+                    <td>@item.DoctorType</td>
+                    <td>@item.BookingDate.ToString("yyyy-MM-dd")</td>
+                    <td>@item.ActualTime.ToString(@"hh\:mm")</td>
+                    <td>@item.Status</td>
+                </tr>
+                i++;
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="7" class="text-center">No appointments found.</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

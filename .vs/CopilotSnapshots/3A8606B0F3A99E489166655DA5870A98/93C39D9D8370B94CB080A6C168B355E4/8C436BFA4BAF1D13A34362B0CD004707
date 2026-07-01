@@ -1,0 +1,204 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.js"></script>
+    <!-- Google Charts -->
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <!-- Plotly -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Admin Dashboard</h2>
+
+    <!-- Summary Cards -->
+    
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <h5>Total Doctors</h5>
+                    <h3 id="doctorCount">@ViewBag.DoctorCount</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <h5>Total Patients</h5>
+                    <h3 id="patientCount">@ViewBag.PatientCount</h3>
+                </div>
+            </div>
+        </div>
+    
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-warning shadow h-100 py-2">
+                <div class="card-body text-center">
+                    <h5>Total Income</h5>
+                    <h3 id="totalIncome">
+                        @String.Format("{0:C0}", ViewBag.TotalIncome)
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+
+        <!-- Chart.js Pie Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Doctor Booking</h5>
+                    <canvas id="doctorBookingChart" style="width:100%;max-width:600px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Bar Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Weekly Booking</h5>
+                    <div id="googleBarChart" style="width:100%; height:250px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Google Pie Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Type of Doctors</h5>
+                    <div id="googlePieChart" style="width:100%; height:250px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Plotly Line Chart -->
+        <div class="col-md-6 mb-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Income vs. Day</h5>
+                    <div id="plotlyChart" style="width:100%; height:250px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart.js Multi-Line Chart -->
+        <div class="col-12 mb-4">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h5 class="card-title text-center">Multi-Line Data Comparison</h5>
+                    <canvas id="multiLineChart" style="width:100%;max-width:1000px;"></canvas>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <!-- Scripts -->
+    <script>
+        // Doctor Booking Pie Chart
+        new Chart("doctorBookingChart", {
+            type: "pie",
+            data: {
+                labels: ["Online", "Offline"],
+                datasets: [{
+                    backgroundColor: ["#00aba9", "#2b5797"],
+                    data: [
+                        @ViewBag.OnlineBookingCount ?? 0,
+                        @ViewBag.OfflineBookingCount ?? 0
+                    ]
+                }]
+            },
+            options: {
+                
+            }
+        });
+
+        // Google Charts
+        google.charts.load('current', { 'packages': ['corechart'] });
+        google.charts.setOnLoadCallback(drawBarChart);
+        google.charts.setOnLoadCallback(drawPieChart);
+
+        // Google Bar Chart
+        function drawBarChart() {
+            const data = google.visualization.arrayToDataTable([
+                ['Day', 'Number Of Booking'],
+                ['Sunday', 55],
+                ['Monday', 49],
+                ['Tuesday', 44],
+                ['Wednesday', 24],
+                ['Thursday', 15],
+                ['Friday', 35],
+                ['Saturday', 30]
+            ]);
+            const chart = new google.visualization.BarChart(document.getElementById('googleBarChart'));
+            chart.draw(data);
+        }
+
+        // Google Pie Chart
+        function drawPieChart() {
+            const data = google.visualization.arrayToDataTable([
+                ['Type', 'Mhl'],
+                ['Aerospace Medicine Specialist', 54.8],
+                ['Allergist', 48.6],
+                ['Anaesthesiologist', 44.4],
+                ['Andrologist', 23.9],
+                ['Cardiologist', 14.5]
+            ]);
+
+            const options = {
+                is3D: true
+            };
+
+            const chart = new google.visualization.PieChart(document.getElementById('googlePieChart'));
+            chart.draw(data, options);
+        }
+
+        // Plotly Line Chart
+        const xArray = [50, 40, 70, 80, 90, 100, 110, 120, 130, 140, 150];
+        const yArray = [7, 8, 8, 9, 9, 9, 10, 11, 14, 14, 15];
+
+        const plotlyData = [{
+            x: xArray,
+            y: yArray,
+            mode: "lines"
+        }];
+
+        const layout = {
+            xaxis: { range: [40, 160], title: "Days" },
+            yaxis: { range: [5, 16], title: "Income" },
+       
+        };
+
+        Plotly.newPlot("plotlyChart", plotlyData, layout);
+
+        // Multi-Line Chart
+        const multiLineX = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000];
+
+        new Chart("multiLineChart", {
+            type: "line",
+            data: {
+                labels: multiLineX,
+                datasets: [
+                    { data: [860, 1140, 1060, 1060, 1070, 1110, 1330, 2210, 7830, 2478], borderColor: "red", fill: false },
+                    { data: [1600, 1700, 1700, 1900, 2000, 2700, 4000, 5000, 6000, 7000], borderColor: "green", fill: false },
+                    { data: [300, 700, 2000, 5000, 6000, 4000, 2000, 1000, 200, 100], borderColor: "blue", fill: false }
+                ]
+            },
+            options: { legend: { display: true } }
+        });
+    </script>

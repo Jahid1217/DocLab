@@ -1,0 +1,335 @@
+﻿@model WebApplicationDocLab.Models.DoctorDashboardViewModel
+
+@{
+    ViewBag.Title = "Doctor Dashboard";
+    Layout = "~/Views/_LayoutPageDoctor.cshtml";
+}
+
+<style>
+    .appointment-card {
+        background-color: #fff;
+        transition: all 0.3s ease;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+    }
+
+        .appointment-card:hover {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        }
+
+    .appointment-list {
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+        .appointment-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .appointment-list::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .appointment-list::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+            .appointment-list::-webkit-scrollbar-thumb:hover {
+                background: #555;
+            }
+
+    .patient-id {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .appointment-time {
+        font-weight: 500;
+    }
+
+    .appointment-fee {
+        font-weight: 600;
+        color: #2e7d32;
+    }
+
+    .btn-action {
+        width: 100px;
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-0"><i class="fas fa-tachometer-alt me-2"></i>Doctor Dashboard</h2>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-primary shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Today's Appointments</h5>
+                            <h2 class="mb-0">@Model.TodayAppointments.Count</h2>
+                        </div>
+                        <i class="fas fa-calendar-day fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-success shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Total Patients</h5>
+                            <h2 class="mb-0">@ViewBag.TotalPatients</h2>
+                        </div>
+                        <i class="fas fa-user-injured fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card text-white bg-info shadow h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title">Upcoming Appointments</h5>
+                            <h2 class="mb-0">@Model.UpcomingAppointments.Count</h2>
+                        </div>
+                        <i class="fas fa-calendar-check fa-3x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointments and Prescriptions Section -->
+    <div class="row">
+        <!-- Today's Schedule - Updated Card Style -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-list-alt me-2"></i>Today's Schedule</h5>
+                    <small class="text-muted">@DateTime.Now.ToString("dd MMMM yyyy")</small>
+                </div>
+                <div class="card-body">
+                    @if (Model.TodayAppointments.Any())
+                    {
+                        <div class="appointment-list">
+                            @foreach (var appt in Model.TodayAppointments)
+                            {
+                                <p><strong>DEBUG DATE:</strong> @appt.Booking_Date.ToString("yyyy-MM-dd HH:mm:ss")</p>
+
+                                <div class="appointment-card mb-3 p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            @if (appt.User_Info != null)
+                                            {
+                                                <h6 class="mb-1 fw-bold">@appt.User_Info.FirstName @appt.User_Info.LastName</h6>
+                                                <small class="patient-id">#PT@(appt.User_Info.Id.ToString("D4"))</small>
+                                            }
+                                            else
+                                            {
+                                                <h6 class="mb-1 fw-bold text-danger">Unknown Patient</h6>
+                                            }
+
+
+                                        </div>
+                                        <span class="badge bg-@(appt.BookType == "Online" ? "primary" : "secondary")">@appt.BookType</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="appointment-time">
+                                            <i class="far fa-clock me-2"></i>
+                                            <span>@appt.Booking_Date.ToString("h:mm tt")</span>
+                                        </div>
+                                        <span class="badge bg-@GetStatusBadgeClass(appt.Status)">@appt.Status</span>
+                                    </div>
+
+                                    @*<div class="d-flex justify-content-between align-items-center mb-2">
+                                            <div>
+                                                <i class="fas fa-stethoscope me-2"></i>
+                                                <span>@appt.Purpose</span>
+                                            </div>
+                                            <div class="appointment-fee">
+                                                $@appt.ConsultingFees
+                                            </div>
+                                        </div>*@
+
+                                    <div class="d-flex justify-content-between mt-3">
+                                        <button class="btn btn-sm btn-success btn-action">
+                                            <i class="fas fa-check me-1"></i> Accept
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger btn-action">
+                                            <i class="fas fa-times me-1"></i> Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="far fa-calendar-check fa-3x mb-3"></i>
+                            <p>No appointments scheduled for today</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Prescriptions -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-prescription me-2"></i>Recent Prescriptions</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.RecentPrescriptions.Any())
+                    {
+                        <div class="list-group">
+                            @foreach (var rx in Model.RecentPrescriptions)
+                            {
+                                <a href="@Url.Action("PatientDetails", new { id = rx.PatientId })" class="list-group-item list-group-item-action">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">
+                                            @(rx.User_Info != null ? $"{rx.PatientId} {rx.User_Info.FirstName} {rx.User_Info.LastName}" : "Unknown User")
+                                        </h6>
+                                        <small>@rx.PrescriptionDate.ToString("MMM dd")</small>
+                                    </div>
+                                    <p class="mb-1 text-truncate">@rx.Notes</p>
+                                    <small class="text-muted">Click to view details</small>
+                                </a>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-prescription-bottle-alt fa-3x mb-3"></i>
+                            <p>No recent prescriptions</p>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Dashboard Sections -->
+    <div class="row">
+        <!-- Upcoming Appointments -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-calendar-alt me-2"></i>Upcoming Appointments</h5>
+                </div>
+                <div class="card-body">
+                    @if (Model.UpcomingAppointments.Any())
+                    {
+                        <div class="appointment-list">
+                            @foreach (var appt in Model.UpcomingAppointments)
+                            {
+                                <div class="appointment-card mb-3 p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div>
+                                            @if (appt.User_Info != null)
+                                            {
+                                                <h6 class="mb-1 fw-bold">@appt.User_Info.FirstName @appt.User_Info.LastName</h6>
+                                                <small class="patient-id">#PT@(appt.User_Info.Id.ToString("D4"))</small>
+                                            }
+                                            else
+                                            {
+                                                <h6 class="mb-1 fw-bold text-danger">Unknown Patient</h6>
+                                            }
+
+                                        </div>
+                                        <span class="badge bg-@(appt.BookType == "Online" ? "primary" : "secondary")">@appt.BookType</span>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="appointment-time">
+                                            <i class="far fa-calendar me-2"></i>
+                                            <span>@appt.Booking_Date.ToString("dd MMM yyyy")</span>
+                                        </div>
+                                        <div class="appointment-time">
+                                            <i class="far fa-clock me-2"></i>
+                                            <span>@appt.Booking_Date.ToString("h:mm tt")</span>
+                                        </div>
+                                    </div>
+
+                                    @*<div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-@GetStatusBadgeClass(appt.Status)">@appt.Status</span>
+                                            <div class="appointment-fee">
+                                                $@appt.Fee
+                                            </div>
+                                        </div>*@
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center text-muted py-4">
+                            <i class="far fa-calendar-plus fa-3x mb-3"></i>
+                            <p>No upcoming appointments</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <!--<div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-4 mb-3">
+                            <a href="@Url.Action("Create", "Prescriptions")" class="btn btn-primary btn-lg py-3 w-100">
+                                <i class="fas fa-prescription-bottle-alt fa-2x mb-2"></i><br>
+                                New Prescription
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="@Url.Action("Index", "Patients")" class="btn btn-success btn-lg py-3 w-100">
+                                <i class="fas fa-user-plus fa-2x mb-2"></i><br>
+                                Add Patient
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <a href="@Url.Action("Calendar", "Appointments")" class="btn btn-info btn-lg py-3 w-100">
+                                <i class="fas fa-calendar-plus fa-2x mb-2"></i><br>
+                                Schedule
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>-->
+    </div>
+</div>
+
+@functions {
+    string GetStatusBadgeClass(string status)
+    {
+        switch (status)
+        {
+            case "Confirmed": return "success";
+            case "Pending": return "warning";
+            case "Cancelled": return "danger";
+            default: return "secondary";
+        }
+    }
+}

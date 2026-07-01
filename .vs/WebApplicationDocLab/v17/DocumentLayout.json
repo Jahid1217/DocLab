@@ -1,0 +1,290 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\_layoutpagedoctor.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\_layoutpagedoctor.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.User_Info.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|d:\\code\\.net\\project\\webapplicationdoclab\\webapplicationdoclab\\views\\doctor\\profile.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\doctor\\profile.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\controllers\\patientcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\controllers\\patientcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|d:\\code\\.net\\project\\webapplicationdoclab\\webapplicationdoclab\\models\\doctor_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\models\\doctor_details.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|d:\\code\\.net\\project\\webapplicationdoclab\\webapplicationdoclab\\views\\patient\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\patient\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Medicine_List.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\doctor\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\doctor\\dashboard.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.BookingAppointments.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Test_List.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\doctor\\patients.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\doctor\\patients.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\_layoutpagepatient.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\_layoutpagepatient.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\controllers\\doctorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\controllers\\doctorcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\doctor\\createprescription.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\doctor\\createprescription.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Doctor_Details.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Prescriptions.sql||{0058A1F7-65F3-4DB9-B3D0-CA7E64DD73CD}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\patient\\prescriptions.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\patient\\prescriptions.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\webapplicationdoclab\\views\\doctor\\appointments.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{92A69A3D-6D95-42E6-879B-B3503E475B1A}|WebApplicationDocLab\\WebApplicationDocLab.csproj|solutionrelative:webapplicationdoclab\\views\\doctor\\appointments.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 6,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "dbo.User_Info [Data]",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.User_Info.sql",
+              "ToolTip": "dbo.User_Info [Data]",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-29T03:40:53.038Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "Doctor_Details.cs",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Models\\Doctor_Details.cs",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Models\\Doctor_Details.cs",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Models\\Doctor_Details.cs",
+              "RelativeToolTip": "WebApplicationDocLab\\Models\\Doctor_Details.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAB0AAAAXAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-29T03:35:53.143Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Profile.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Profile.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\Doctor\\Profile.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Profile.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\Doctor\\Profile.cshtml",
+              "ViewState": "AgIAAA8AAAAAAAAAAAAAADQAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-29T03:32:48.779Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "dbo.Test_List.sql",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Test_List.sql",
+              "ToolTip": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Test_List.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-28T19:18:35.12Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "Dashboard.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\patient\\Dashboard.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\patient\\Dashboard.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\patient\\Dashboard.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\patient\\Dashboard.cshtml",
+              "ViewState": "AgIAAKgAAAAAAAAAAAAAAMIAAABbAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T17:20:33.578Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PatientController.cs",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Controllers\\PatientController.cs",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Controllers\\PatientController.cs",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Controllers\\PatientController.cs",
+              "RelativeToolTip": "WebApplicationDocLab\\Controllers\\PatientController.cs",
+              "ViewState": "AgIAACsAAAAAAAAAAAAuwE0AAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-28T17:21:56.954Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "_LayoutPageDoctor.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\_LayoutPageDoctor.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\_LayoutPageDoctor.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\_LayoutPageDoctor.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\_LayoutPageDoctor.cshtml",
+              "ViewState": "AgIAADAAAAAAAAAAAAAAAEsAAABeAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T20:02:30.949Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "Dashboard.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Dashboard.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\Doctor\\Dashboard.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Dashboard.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\Doctor\\Dashboard.cshtml",
+              "ViewState": "AgIAAHwAAAAAAAAAAAAIwD4BAAASAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T19:38:52.459Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "Patients.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Patients.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\Doctor\\Patients.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Patients.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\Doctor\\Patients.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T19:43:54.031Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "dbo.BookingAppointments.sql",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.BookingAppointments.sql",
+              "ToolTip": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.BookingAppointments.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-28T17:20:22.003Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "dbo.Medicine_List.sql",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Medicine_List.sql",
+              "ToolTip": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Medicine_List.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-28T17:30:58.463Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "_LayoutPagePatient.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\_LayoutPagePatient.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\_LayoutPagePatient.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\_LayoutPagePatient.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\_LayoutPagePatient.cshtml",
+              "ViewState": "AgIAACoAAAAAAAAAAAAAAEoAAABOAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T20:05:36.462Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "CreatePrescription.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\CreatePrescription.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\Doctor\\CreatePrescription.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\CreatePrescription.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\Doctor\\CreatePrescription.cshtml",
+              "ViewState": "AgIAAB4BAAAAAAAAAADwvz4BAAANAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T17:55:48.997Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "dbo.Doctor_Details.sql",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Doctor_Details.sql",
+              "ToolTip": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Doctor_Details.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-28T17:28:23.89Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "DoctorController.cs",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Controllers\\DoctorController.cs",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Controllers\\DoctorController.cs",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Controllers\\DoctorController.cs",
+              "RelativeToolTip": "WebApplicationDocLab\\Controllers\\DoctorController.cs",
+              "ViewState": "AgIAABQAAAAAAAAAAAAQwC4BAABFAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-28T17:13:36.311Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 15,
+              "Title": "dbo.Prescriptions.sql",
+              "DocumentMoniker": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Prescriptions.sql",
+              "ToolTip": "ViewDataWindow_MSSQL__/_LocalDb__MSSQLLocalDB/WebApplicationDocLab.Context.DoctorLab/True/SqlTable/dbo.Prescriptions.sql",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
+              "WhenOpened": "2025-06-28T17:18:18.653Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 17,
+              "Title": "Appointments.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Appointments.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\Doctor\\Appointments.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\Doctor\\Appointments.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\Doctor\\Appointments.cshtml",
+              "ViewState": "AgIAAD4BAAAAAAAAAAAAAGUBAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T17:11:58.408Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 16,
+              "Title": "Prescriptions.cshtml",
+              "DocumentMoniker": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\patient\\Prescriptions.cshtml",
+              "RelativeDocumentMoniker": "WebApplicationDocLab\\Views\\patient\\Prescriptions.cshtml",
+              "ToolTip": "D:\\CODE\\.NET\\Project\\WebApplicationDocLab\\WebApplicationDocLab\\Views\\patient\\Prescriptions.cshtml",
+              "RelativeToolTip": "WebApplicationDocLab\\Views\\patient\\Prescriptions.cshtml",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAACMAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2025-06-28T17:09:14.815Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

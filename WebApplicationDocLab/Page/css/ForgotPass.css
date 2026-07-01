@@ -1,0 +1,59 @@
+﻿body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.card-header {
+    padding: 1.5rem;
+}
+
+.otp-input {
+    width: 50px;
+    height: 60px;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid #dee2e6;
+    border-radius: 8px;
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+}
+
+    .otp-input:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+
+    .otp-input:valid {
+        border-color: #198754;
+        background-color: rgba(25, 135, 84, 0.05);
+    }
+
+#timer {
+    font-family: 'Courier New', monospace;
+    font-size: 1.1rem;
+}
+
+.btn-primary, .btn-success, .btn-info {
+    -webkit-transition: all 0.3s;
+    transition: all 0.3s;
+}
+
+    .btn-primary:hover {
+        background-color: #0b5ed7;
+        transform: translateY(-1px);
+    }
+
+    .btn-success:hover {
+        background-color: #157347;
+        transform: translateY(-1px);
+    }
+
+    .btn-info:hover {
+        background-color: #0dcaf0;
+        transform: translateY(-1px);
+    }

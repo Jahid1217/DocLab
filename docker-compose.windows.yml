@@ -1,0 +1,9 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DOCTORLAB_CONNECTION_STRING: "Data Source=host.docker.internal,1433;Initial Catalog=DoctorLab;User ID=sa;Password=Your_strong_password123;MultipleActiveResultSets=True;TrustServerCertificate=True;App=EntityFramework"
+    ports:
+      - "8080:80"

@@ -1,0 +1,400 @@
+﻿@model WebApplicationDocLab.Models.BookingAppointment
+@using WebApplicationDocLab.Models;
+@{
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+    var doctorDetails = ViewBag.DoctorDetails as List<Doctor_Details>;
+    var doctors = ViewBag.Doctors as List<User_Info>;
+}
+
+<div class="container mt-4">
+    <div class="card appointment-card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="fas fa-calendar-plus mr-2"></i>Book New Appointment</h4>
+        </div>
+
+        <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            <div class="search-container mb-4">
+                <div class="input-group">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-primary"></i></span>
+                    </div>
+                    <input type="text" id="doctorSearchInput" class="form-control" placeholder="Search doctors by name, department, or specialty..." />
+                </div>
+            </div>
+
+            <div class="container">
+                <div class="row gy-4 doctor-list">
+                    @{
+                        var activeDoctors = doctors.Where(x => x.UserType == "Doctor" && x.Status == "Active").ToList();
+
+                        foreach (var doctor in activeDoctors)
+                        {
+                            var details = doctorDetails?.FirstOrDefault(d => d.DoctorId == doctor.Id);
+                            <div class="col-lg-6 doctor-card" data-aos="fade-up">
+                                <div class="team-member d-flex align-items-start">
+                                    <div class="doctor-avatar">
+                                        <img src="@Url.Content("~/image/DoctorImage/" + (string.IsNullOrEmpty(doctor.Image) ? "default-doctor.jpg" : doctor.Image))"
+                                             class="img-fluid" alt="@doctor.FirstName @doctor.LastName" />
+                                    </div>
+                                    <div class="doctor-info flex-grow-1">
+                                        <h4 class="doctor-name">@doctor.Title @doctor.FirstName @doctor.LastName</h4>
+                                        <span class="doctor-specialty badge badge-info">@doctor.DocType</span>
+                                        <span class="doctor-department badge badge-secondary">@doctor.Department</span>
+
+                                        <div class="doctor-contact mt-2">
+                                            <p><i class="fas fa-phone-alt mr-2"></i> @doctor.Phone</p>
+                                        </div>
+
+                                        @if (details != null)
+                                        {
+                                            <div class="doctor-availability mt-2">
+                                                <p class="mb-1"><i class="fas fa-calendar-day mr-2"></i> <strong>Available:</strong> @details.Day</p>
+                                                <p class="mb-1"><i class="fas fa-clock mr-2"></i> <strong>Hours:</strong> @details.TimeStart - @details.TimeEnd</p>
+                                                <p class="mb-1"><i class="fas fa-money-bill-wave mr-2"></i> <strong>Fee:</strong> $@details.ConsultingFees</p>
+                                            </div>
+                                        }
+                                    </div>
+
+                                    <button type="button" class="btn btn-primary book-appointment-btn align-self-center"
+                                            data-toggle="modal" data-target="#appointmentModal"
+                                            data-doctorid="@doctor.Id"
+                                            data-doctorname="@doctor.Title @doctor.FirstName @doctor.LastName"
+                                            data-consultingfees="@(details?.ConsultingFees ?? 0)"
+                                            data-availabledays="@details?.Day">
+                                        <i class="fas fa-book-medical mr-2"></i>Book
+                                    </button>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Appointment Booking Modal -->
+<div class="modal fade" id="appointmentModal" tabindex="-1" role="dialog" aria-labelledby="appointmentModalLabel">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="appointmentModalLabel">
+                    <i class="fas fa-calendar-check mr-2"></i>
+                    Book Appointment with <span id="modalDoctorName"></span>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            @using (Html.BeginForm("AddAppointment", "Patient", FormMethod.Post, new { id = "appointmentForm" }))
+            {
+                @Html.AntiForgeryToken()
+                <div class="modal-body">
+                    <!-- Hidden Fields -->
+                    <input type="hidden" name="DoctorId" id="doctorId" value="" />
+                    <input type="hidden" name="DoctorName" id="doctorName" value="" />
+                    <input type="hidden" name="PatientId" value="@Session["UserId"]" />
+                    <input type="hidden" name="ConsultingFees" id="consultingFees" value="" />
+
+                    <div class="form-group">
+                        @Html.LabelFor(x => x.BookType, new { @class = "form-label required-field" })
+                        @Html.DropDownListFor(x => x.BookType, new SelectList(Enum.GetValues(typeof(BookType))), "--Select Booking Type--", new { @class = "form-control selectpicker", required = "required" })
+                        @Html.ValidationMessageFor(x => x.BookType, "", new { @class = "text-danger" })
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label required-field">Appointment Date</label>
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                            </div>
+                            <input type="date" name="Booking_Date" class="form-control" id="appointmentDate" required />
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-info-circle mr-2"></i>
+                        <span id="feeDisplay">Consulting fee: $<span id="feeAmount">0</span></span>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">
+                        <i class="fas fa-times mr-2"></i> Cancel
+                    </button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-calendar-plus mr-2"></i> Confirm Appointment
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <style>
+        :root {
+            --primary-color: #4361ee;
+            --secondary-color: #3f37c9;
+            --accent-color: #4cc9f0;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --success-color: #4bb543;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --border-radius: 12px;
+            --box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f5f7fb;
+            color: #4a4a4a;
+        }
+
+        .appointment-card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+            .search-container .input-group-text {
+                border-right: none;
+                background-color: transparent;
+            }
+
+        #doctorSearchInput {
+            border-left: none;
+            padding-left: 0;
+        }
+
+        .doctor-card {
+            transition: var(--transition);
+        }
+
+        .team-member {
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+            height: 100%;
+        }
+
+            .team-member:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            }
+
+        .doctor-avatar img {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #e9f2ff;
+            margin-right: 1.5rem;
+        }
+
+        .doctor-info {
+            flex: 1;
+        }
+
+        .doctor-name {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .doctor-specialty {
+            font-size: 0.85rem;
+            background-color: #e3f2fd;
+            color: var(--primary-color);
+            padding: 0.35em 0.65em;
+        }
+
+        .doctor-department {
+            font-size: 0.85rem;
+            background-color: #e8eaf6;
+            color: #5c6bc0;
+            padding: 0.35em 0.65em;
+            margin-left: 0.5rem;
+        }
+
+        .doctor-contact p {
+            color: #6c757d;
+            font-size: 0.9rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .doctor-availability p {
+            font-size: 0.85rem;
+            color: #495057;
+            margin-bottom: 0.3rem;
+        }
+
+        .book-appointment-btn {
+            border-radius: 30px;
+            padding: 0.5rem 1.25rem;
+            font-weight: 500;
+            white-space: nowrap;
+            align-self: center;
+            transition: var(--transition);
+        }
+
+        .modal-content {
+            border: none;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+
+        .modal-header {
+            padding: 1.25rem 1.5rem;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .form-label.required-field::after {
+            content: "*";
+            color: var(--danger-color);
+            margin-left: 4px;
+        }
+
+        .form-control, .selectpicker {
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            border: 1px solid #e0e0e0;
+        }
+
+            .form-control:focus, .selectpicker:focus {
+                border-color: var(--primary-color);
+                box-shadow: 0 0 0 0.2rem rgba(67, 97, 238, 0.25);
+            }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            transition: var(--transition);
+        }
+
+            .btn-primary:hover {
+                background-color: var(--secondary-color);
+                border-color: var(--secondary-color);
+                transform: translateY(-2px);
+            }
+
+        .btn-outline-secondary {
+            border-radius: 8px;
+            padding: 0.5rem 1.5rem;
+            transition: var(--transition);
+        }
+
+            .btn-outline-secondary:hover {
+                transform: translateY(-2px);
+            }
+
+        .alert-info {
+            background-color: #e3f2fd;
+            border-color: #bbdefb;
+            color: #1976d2;
+            border-radius: 8px;
+        }
+
+        /* Responsive adjustments */
+        @@media (max-width: 767.98px) {
+            .doctor-avatar img {
+                width: 80px;
+                height: 80px;
+                margin-right: 1rem;
+            }
+
+            .team-member {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .book-appointment-btn {
+                margin-top: 1rem;
+                align-self: flex-start;
+            }
+        }
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Real-time search filter for doctors
+            $('#doctorSearchInput').on('keyup', function () {
+                const searchTerm = $(this).val().toLowerCase();
+                $('.doctor-card').each(function () {
+                    const cardText = $(this).text().toLowerCase();
+                    $(this).toggle(cardText.includes(searchTerm));
+                });
+            });
+
+            // Appointment modal population logic
+            $('.book-appointment-btn').click(function () {
+                const doctorId = $(this).data('doctorid');
+                const doctorName = $(this).data('doctorname');
+                const consultingFees = $(this).data('consultingfees');
+                const availableDays = $(this).data('availabledays');
+
+                $('#modalDoctorName').text(doctorName);
+                $('#doctorId').val(doctorId);
+                $('#doctorName').val(doctorName);
+                $('#consultingFees').val(consultingFees);
+                $('#feeAmount').text(consultingFees);
+                $('#appointmentDate').val('');
+
+                // Set minimum date to today
+                const today = new Date().toISOString().split('T')[0];
+                $('#appointmentDate').attr('min', today);
+            });
+
+            // Form validation
+            $('#appointmentForm').submit(function (e) {
+                if (!$('#doctorId').val() || !$('#appointmentDate').val() || !$('#BookType').val()) {
+                    e.preventDefault();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Please fill all required fields!',
+                    });
+                    return false;
+                }
+                return true;
+            });
+
+            // Show loading state on form submission
+            $('#appointmentForm').on('submit', function () {
+                $('#submitBtn').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Booking...');
+                $('#submitBtn').prop('disabled', true);
+            });
+        });
+    </script>

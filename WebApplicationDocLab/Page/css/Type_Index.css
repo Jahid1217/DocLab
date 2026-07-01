@@ -1,0 +1,46 @@
+﻿body {
+    background-color: #f8f9fa;
+}
+
+h2 {
+    color: #343a40;
+    font-size: 2rem;
+    border-bottom: 3px solid #007bff;
+    display: inline-block;
+    padding-bottom: 5px;
+}
+
+.btn {
+    transition: all 0.3s ease;
+}
+
+    .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+.table {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+    .table th {
+        background-color: #343a40;
+        color: white;
+        text-align: center;
+    }
+
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.btn-success {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+    .btn-success:hover {
+        background-color: #218838;
+        border-color: #1e7e34;
+    }

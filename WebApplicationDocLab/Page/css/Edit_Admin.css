@@ -1,0 +1,56 @@
+﻿body {
+	background-color: #f8fafa;
+}
+
+.card {
+	border-radius: 0.5rem;
+	border: none;
+	margin-bottom: 1.5rem;
+}
+
+.card-header {
+	border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+	font-weight: 600;
+}
+
+.form-label {
+	font-size: 0.875rem;
+	margin-bottom: 0.25rem;
+	font-weight: 500;
+}
+
+.form-control, .form-select {
+	border-radius: 0.375rem;
+	padding: 0.5rem 0.75rem;
+}
+
+	.form-control:focus, .form-select:focus {
+		border-color: #86b7fe;
+		box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+	}
+
+.breadcrumb {
+	padding: 0.5rem 1rem;
+	margin-bottom: 0;
+}
+
+#passwordField, #ConfirmPassword {
+	border-right: none;
+}
+
+#togglePassword, #toggleConfirmPassword {
+	border-left: none;
+	background-color: #f8f9fa;
+}
+
+.btn-outline-secondary:hover {
+	background-color: #f8f9fa;
+}
+
+.text-danger {
+	font-size: 0.8rem;
+}
+
+.input-group-text {
+	background-color: #f8f9fa;
+}

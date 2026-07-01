@@ -1,0 +1,219 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.AppointmentViewModel>
+
+@{
+    ViewBag.Title = "Appointments";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<div class="appointments-container">
+    <div class="appointments-header">
+        <h2><i class="fas fa-calendar-alt"></i> Appointments Management</h2>
+        <div class="appointments-actions">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="appointmentSearch" placeholder="Search appointments...">
+                <button id="clearSearch" class="btn-clear">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="filter-container">
+                <select id="filterStatus" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="Upcoming">Upcoming</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                <select id="filterDoctorType" class="form-select">
+                    <option value="">All Specialties</option>
+                    <option value="Cardiologist">Cardiologist</option>
+                    <option value="Dermatologist">Dermatologist</option>
+                    <!-- Add more doctor types as needed -->
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="appointments-table" id="appointmentsTable">
+            <thead>
+                <tr>
+                    <th data-sort="number">#</th>
+                    <th data-sort="patient">Patient</th>
+                    <th data-sort="doctor">Doctor</th>
+                    <th data-sort="type">Specialty</th>
+                    <th data-sort="date">Date</th>
+                    <th data-sort="time">Time</th>
+                </tr>
+            </thead>
+            <tbody id="appointmentsTbody">
+                @if (Model != null && Model.Any())
+                {
+                    int i = 1;
+                    foreach (var item in Model)
+                    {
+                        <tr data-status="@GetStatus(item.Booking_Date)">
+                            <td>@i</td>
+                            <td>
+                                <div class="patient-info">
+                                    <span class="patient-name">@item.PatientName</span>
+                                    <span class="patient-id">ID: @item.PatientId</span>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="doctor-info">
+                                    <span class="doctor-name">@item.DoctorName</span>
+                                    <span class="doctor-id">ID: @item.DoctorId</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="specialty-badge @item.BookType.ToLower()">@item.BookType</span>
+                            </td>
+                            <td>@item.Booking_Date.ToString("yyyy-MM-dd")</td>
+                            <td>@item.ActualTime.ToString(@"hh\:mm")</td>
+                        </tr>
+                        i++;
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="no-appointments">
+                            <i class="fas fa-calendar-times"></i>
+                            <span>No appointments found</span>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="table-footer">
+        <div class="showing-entries">
+            Showing <span id="showingCount">0</span> of <span id="totalCount">@Model.Count()</span> entries
+        </div>
+        <div class="pagination-container">
+            <button id="prevPage" class="btn-pagination" disabled>
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <span id="pageInfo">Page 1 of 1</span>
+            <button id="nextPage" class="btn-pagination" disabled>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+@functions {
+    public string GetStatus(DateTime bookingDate)
+    {
+        if (bookingDate < DateTime.Today)
+            return "Completed";
+        return "Upcoming";
+    }
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="~/Content/admin-appointments.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="~/Scripts/admin-appointments.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Handle search functionality
+        $('#appointmentSearch').on('input', function () {
+            filterAppointments();
+        });
+
+        // Handle clear search functionality
+        $('#clearSearch').click(function () {
+            $('#appointmentSearch').val('');
+            filterAppointments();
+        });
+
+        // Handle status filter change
+        $('#filterStatus').change(function () {
+            filterAppointments();
+        });
+
+        // Handle doctor specialty filter change
+        $('#filterDoctorType').change(function () {
+            filterAppointments();
+        });
+
+        let currentPage = 1;
+        const itemsPerPage = 10;
+
+        function filterAppointments() {
+            const searchTerm = $('#appointmentSearch').val().toLowerCase();
+            const filterStatus = $('#filterStatus').val();
+            const filterDoctorType = $('#filterDoctorType').val();
+
+            let filteredAppointments = @Html.Raw(Json.Serialize(Model))
+                .filter(function (appointment) {
+                    const matchesSearchTerm = appointment.PatientName.toLowerCase().includes(searchTerm) || appointment.DoctorName.toLowerCase().includes(searchTerm);
+                    const matchesStatus = filterStatus ? GetStatus(appointment.Booking_Date) === filterStatus : true;
+                    const matchesDoctorType = filterDoctorType ? appointment.BookType === filterDoctorType : true;
+
+                    return matchesSearchTerm && matchesStatus && matchesDoctorType;
+                });
+
+            const totalCount = filteredAppointments.length;
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const currentPageAppointments = filteredAppointments.slice(start, end);
+
+            $('#appointmentsTbody').empty();
+            currentPageAppointments.forEach(function (appointment, index) {
+                const row = `<tr data-status="${GetStatus(appointment.Booking_Date)}">
+                                <td>${start + index + 1}</td>
+                                <td>
+                                    <div class="patient-info">
+                                        <span class="patient-name">${appointment.PatientName}</span>
+                                        <span class="patient-id">ID: ${appointment.PatientId}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="doctor-info">
+                                        <span class="doctor-name">${appointment.DoctorName}</span>
+                                        <span class="doctor-id">ID: ${appointment.DoctorId}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="specialty-badge ${appointment.BookType.toLowerCase()}">${appointment.BookType}</span>
+                                </td>
+                                <td>${appointment.Booking_Date.toString("yyyy-MM-dd")}</td>
+                                <td>${appointment.ActualTime.toString("hh:mm")}</td>
+                            </tr>`;
+                $('#appointmentsTbody').append(row);
+            });
+
+            $('#showingCount').text(currentPageAppointments.length);
+            $('#totalCount').text(totalCount);
+
+            const totalPages = Math.ceil(totalCount / itemsPerPage);
+            $('#pageInfo').text(`Page ${currentPage} of ${totalPages}`);
+
+            $('#prevPage').prop('disabled', currentPage === 1);
+            $('#nextPage').prop('disabled', currentPage === totalPages);
+        }
+
+        // Handle pagination
+        $('#prevPage').click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                filterAppointments();
+            }
+        });
+
+        $('#nextPage').click(function () {
+            const totalPages = Math.ceil(@Model.Count() / itemsPerPage);
+            if (currentPage < totalPages) {
+                currentPage++;
+                filterAppointments();
+            }
+        });
+
+        // Initialize the table with filtered appointments
+        filterAppointments();
+    });
+</script>

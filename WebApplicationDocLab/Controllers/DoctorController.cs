@@ -1,0 +1,742 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using WebApplicationDocLab.Context;
+using WebApplicationDocLab.Models;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using System.Drawing.Printing;
+using System.Xml.Linq;
+using Newtonsoft.Json;
+
+namespace WebApplicationDocLab.Controllers
+{
+    public class DoctorController : Controller
+    {
+        private DoctorLab _db = new DoctorLab();
+
+        // ====================
+        // 1. DASHBOARD
+        // ====================
+        public ActionResult Dashboard()
+        {
+            int doctorId = GetCurrentDoctorId();
+            var today = DateTime.Today;
+
+            var todayAppointments = _db.BookingAppointments
+                .Where(b => b.DoctorId == doctorId &&
+                            DbFunctions.TruncateTime(b.Booking_Date) == today &&
+                            b.User_Info != null)
+                .Include("User_Info")
+                .ToList();
+
+            var upcomingAppointments = _db.BookingAppointments
+                .Where(b => b.DoctorId == doctorId &&
+                            DbFunctions.TruncateTime(b.Booking_Date) > today &&
+                            b.User_Info != null)
+                .Include("User_Info")
+                .ToList();
+
+            var prescriptions = _db.Prescriptions
+                .Include(p => p.User_Info)
+                .Where(p => p.DoctorId == doctorId)
+                .OrderByDescending(p => p.PrescriptionDate)
+                .Take(10)
+                .ToList();
+
+            var model = new DoctorDashboardViewModel
+            {
+                TodayAppointments = todayAppointments,
+                UpcomingAppointments = upcomingAppointments,
+                RecentPrescriptions = prescriptions
+            };
+
+            ViewBag.TotalPatients = _db.BookingAppointments
+                .Where(b => b.DoctorId == doctorId)
+                .Select(b => b.PatientId)
+                .Distinct()
+                .Count();
+
+            return View(model);
+        }
+
+        // ====================
+        // 2. APPOINTMENT MANAGEMENT
+        // ====================
+        public ActionResult Appointments()
+        {
+            var doctorId = GetCurrentDoctorId();
+
+            var appointments = _db.BookingAppointments
+                .Include(a => a.User_Info)
+                .Where(a => a.DoctorId == doctorId)
+                .OrderBy(a => a.Booking_Date)
+                .ToList();
+
+            return View(appointments);
+        }
+
+        [HttpPost]
+        public ActionResult UpdateAppointmentStatus(int id, BookingAppointment.AppointmentStatus status)
+        {
+            var appointment = _db.BookingAppointments.Find(id);
+            if (appointment == null)
+            {
+                TempData["Error"] = "Appointment not found";
+                return RedirectToAction("Appointments");
+            }
+
+            if (appointment.DoctorId != GetCurrentDoctorId())
+            {
+                TempData["Error"] = "You don't have permission to update this appointment";
+                return RedirectToAction("Appointments");
+            }
+
+            appointment.Status = status.ToString();
+            _db.SaveChanges();
+            TempData["Success"] = "Appointment status updated to " + status;
+
+            return RedirectToAction("Appointments");
+        }
+
+        // ====================
+        // 3. PATIENT MANAGEMENT
+        // ====================
+        public ActionResult Patients()
+        {
+            int doctorId = GetCurrentDoctorId();
+
+            var patientIds = _db.BookingAppointments
+                .Where(b => b.DoctorId == doctorId)
+                .Select(b => b.PatientId)
+                .Distinct()
+                .ToList();
+
+            var patients = _db.User_Infos
+                .Where(u => patientIds.Contains(u.Id) && u.UserType == "Patient")
+                .ToList();
+
+            var lastVisits = _db.BookingAppointments
+                .Where(a => a.DoctorId == doctorId && patientIds.Contains(a.PatientId))
+                .GroupBy(a => a.PatientId)
+                .ToDictionary(g => g.Key, g => g.Max(a => a.Booking_Date));
+
+            ViewBag.LastVisits = lastVisits;
+
+            return View(patients);
+        }
+            
+        public ActionResult PatientDetails(int id)
+        {
+            int doctorId = GetCurrentDoctorId();
+           
+            bool hasAppointment = _db.BookingAppointments
+                .Any(b => b.DoctorId == doctorId && b.PatientId == id);
+
+            if (!hasAppointment)
+            {
+                return HttpNotFound();
+            }
+
+            var patient = _db.User_Infos
+                .FirstOrDefault(u => u.Id == id && u.UserType == "Patient");
+
+            if (patient == null)
+            {
+                return HttpNotFound();
+            }
+
+            var patientDetails = new Dictionary<string, object>();
+
+            if (!string.IsNullOrEmpty(patient.FirstName) || !string.IsNullOrEmpty(patient.LastName))
+            {
+                patientDetails.Add("Name", $"{patient.FirstName} {patient.LastName}".Trim());
+            }
+
+            if (patient.DateOfBirth != default(DateTime))
+            {
+                patientDetails.Add("Date of Birth", patient.DateOfBirth.ToString("yyyy-MM-dd"));
+                patientDetails.Add("Age", DateTime.Now.Year - patient.DateOfBirth.Year);
+            }
+
+            if (!string.IsNullOrEmpty(patient.Gender.ToString()))
+            {
+                patientDetails.Add("Gender", patient.Gender);
+            }
+
+            if (!string.IsNullOrEmpty(patient.Phone))
+            {
+                patientDetails.Add("Phone", patient.Phone);
+            }
+
+            if (!string.IsNullOrEmpty(patient.Email))
+            {
+                patientDetails.Add("Email", patient.Email);
+            }
+
+            if (!string.IsNullOrEmpty(patient.Address))
+            {
+                patientDetails.Add("Address", patient.Address);
+            }
+
+            if (!string.IsNullOrEmpty(patient.BloodGroup.ToString()))
+            {
+                patientDetails.Add("Blood Group", patient.BloodGroup);
+            }
+
+            if (!string.IsNullOrEmpty(patient.NID))
+            {
+                patientDetails.Add("NID/Passport", patient.NID);
+            }
+
+            var medicalHistory = _db.Medical_Histories
+                .Where(m => m.PatientId == id)
+                .OrderByDescending(m => m.Created_at)
+                .ToList();
+
+            var prescriptions = _db.Prescriptions
+                .Where(p => p.PatientId == id && p.DoctorId == doctorId)
+                .ToList();
+
+            var model = new PatientDetailsViewModel
+            {
+                Patient = patient,
+                PatientDetails = patientDetails,
+                MedicalHistory = medicalHistory,
+                Prescriptions = prescriptions
+            };
+
+            return View(model);
+        }
+
+        // ====================
+        // 4. PRESCRIPTION MANAGEMENT
+        // ====================
+        public ActionResult CreatePrescription(int? patientId = null)
+        {
+            if (patientId == null)
+            {
+                patientId = Session["CurrentPatientId"] as int?;
+                if (patientId == null)
+                {
+                    TempData["Error"] = "Patient not specified";
+                    return RedirectToAction("Patients");
+                }
+            }
+            else
+            {
+                Session["CurrentPatientId"] = patientId;
+            }
+
+            var patient = _db.User_Infos.Find(patientId);
+            if (patient == null)
+            {
+                TempData["Error"] = "Patient not found";
+                return RedirectToAction("Patients");
+            }
+
+            ViewBag.PatientName = $"{patient.FirstName} {patient.LastName}";
+            ViewBag.Medicine = _db.Medicines.ToList();
+            ViewBag.Test = _db.Tests.ToList();
+
+            var prescription = new Prescription
+            {
+                PatientId = patientId.Value,
+                DoctorId = GetCurrentDoctorId(),
+                PrescriptionDate = DateTime.Now
+            };
+
+            return View(prescription);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult CreatePrescription(Prescription prescription, string medicineData, string testData)
+        {
+            if (ModelState.IsValid)
+            {
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        // Save prescription
+                        prescription.PrescriptionDate = DateTime.Now;
+                        _db.Prescriptions.Add(prescription);
+                        _db.SaveChanges();
+
+                        // Save medicines to Medicine_List
+                        if (!string.IsNullOrEmpty(medicineData))
+                        {
+                            // medicineData is expected to be a JSON array like:
+                            // [{ Id: 1, Name: "...", Dosage: "...", Duration: "..." }]
+                            var medicines = JsonConvert.DeserializeObject<List<Medicine_List>>(medicineData);
+
+                            foreach (var med in medicines)
+                            {
+                                var medList = new Medicine_List
+                                {
+                                    MedicinID = med.Id.ToString(), // or int.Parse if needed
+                                    PrescriptionId = prescription.Id,
+                                    Created_at = DateTime.Now
+                                };
+                                _db.Medicine_Lists.Add(medList);
+                            }
+                        }
+
+                        // Save tests to Test_List
+                        if (!string.IsNullOrEmpty(testData))
+                        {
+                            // testData is expected to be a JSON array like:
+                            // [{ Id: 2, Name: "Blood Test" }]
+                            var tests = JsonConvert.DeserializeObject<List<Test_List>>(testData);
+
+                            foreach (var test in tests)
+                            {
+                                var testList = new Test_List
+                                {
+                                    TestId = test.Id,
+                                    PrescriptionId = prescription.Id,
+                                    Created_at = DateTime.Now
+                                };
+                                _db.Test_Lists.Add(testList);
+                            }
+                        }
+
+                        _db.SaveChanges();
+                        transaction.Commit();
+
+                        TempData["Success"] = "Prescription created successfully!";
+                        return RedirectToAction("PatientDetails", new { id = prescription.PatientId });
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        TempData["Error"] = "Error creating prescription: " + ex.Message;
+                    }
+                }
+            }
+
+            // Repopulate patient name if validation fails
+            ViewBag.PatientName = _db.User_Infos.Find(prescription.PatientId)?.FirstName;
+            return View(prescription);
+        }
+
+
+        // Helper class for deserialization
+        public class MedicineEntry
+        {
+            public int MedicineId { get; set; }
+            public string Dosage { get; set; }
+            public string Duration { get; set; }
+        }
+
+        // ====================
+        // PRESCRIPTION PDF GENERATION
+        // ====================
+        public ActionResult ViewPrescription(int id)
+        {
+            var prescription = _db.Prescriptions
+                .Include(p => p.User_Info)
+                .FirstOrDefault(p => p.Id == id);
+
+            if (prescription == null)
+            {
+                return HttpNotFound("Prescription not found");
+            }
+
+            var doctor = _db.User_Infos.Find(prescription.DoctorId);
+            if (doctor != null)
+            {
+                ViewBag.DoctorName = $"{doctor.FirstName} {doctor.LastName}";
+                ViewBag.DoctorSpecialization = doctor.DocType;
+                ViewBag.DoctorRegistrationNo = doctor.RegistrationNo;
+            }
+
+            return View(prescription);
+        }
+
+        public ActionResult DownloadPrescription(int id)
+        {
+            var prescription = _db.Prescriptions.Find(id);
+            if (prescription == null)
+            {
+                return HttpNotFound("Prescription not found");
+            }
+
+            if (prescription.DoctorId != GetCurrentDoctorId())
+            {
+                return new HttpUnauthorizedResult("You can only download your own prescriptions");
+            }
+
+            byte[] pdfBytes = GeneratePrescriptionPdf(prescription);
+            return File(pdfBytes, "application/pdf", $"Prescription_{prescription.Id}.pdf");
+        }
+
+        private byte[] GeneratePrescriptionPdf(Prescription prescription)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                Document document = new Document(PageSize.A4, 25, 25, 30, 30);
+                PdfWriter writer = PdfWriter.GetInstance(document, ms);
+                document.Open();
+
+                // Clinic Header
+                Paragraph clinicHeader = new Paragraph("DOCLAB MEDICAL CENTER",
+                    FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 18));
+                clinicHeader.Alignment = Element.ALIGN_CENTER;
+                document.Add(clinicHeader);
+
+                Paragraph clinicAddress = new Paragraph("123 Medical Avenue, Health City\nPhone: (123) 456-7890",
+                    FontFactory.GetFont(FontFactory.HELVETICA, 10));
+                clinicAddress.Alignment = Element.ALIGN_CENTER;
+                clinicAddress.SpacingAfter = 15;
+                document.Add(clinicAddress);
+
+                // Prescription Title
+                Paragraph title = new Paragraph("MEDICAL PRESCRIPTION",
+                    FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 16));
+                title.Alignment = Element.ALIGN_CENTER;
+                title.SpacingAfter = 20;
+                document.Add(title);
+
+                // Patient Info
+                var patient = _db.User_Infos.Find(prescription.PatientId);
+                Paragraph patientInfo = new Paragraph();
+                patientInfo.Add(new Chunk("Patient: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD)));
+                patientInfo.Add($"{patient.FirstName} {patient.LastName}\n");
+                patientInfo.Add(new Chunk("DOB: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD)));
+                patientInfo.Add($"{patient.DateOfBirth:dd MMM yyyy} | ");
+                patientInfo.Add(new Chunk("Gender: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD)));
+                patientInfo.Add($"{patient.Gender}");
+                document.Add(patientInfo);
+
+                // Prescription Details
+                Paragraph prescDetails = new Paragraph();
+                prescDetails.Add(new Chunk("Date: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD)));
+                prescDetails.Add($"{prescription.PrescriptionDate:dd MMM yyyy} | ");
+                prescDetails.Add(new Chunk("ID: ", FontFactory.GetFont(FontFactory.HELVETICA_BOLD)));
+                prescDetails.Add($"RX{prescription.Id:D5}");
+                prescDetails.SpacingAfter = 15;
+                document.Add(prescDetails);
+
+                // Medicines Table
+                PdfPTable table = new PdfPTable(3);
+                table.WidthPercentage = 100;
+                table.SetWidths(new float[] { 50, 25, 25 });
+
+                // Table Headers
+                table.AddCell(new PdfPCell(new Phrase("Medicine", FontFactory.GetFont(FontFactory.HELVETICA_BOLD))));
+                table.AddCell(new PdfPCell(new Phrase("Dosage", FontFactory.GetFont(FontFactory.HELVETICA_BOLD))));
+                table.AddCell(new PdfPCell(new Phrase("Duration", FontFactory.GetFont(FontFactory.HELVETICA_BOLD))));
+
+                // Parse and add medicines
+                var medicines = ParseMedicines(prescription.Notes);
+                foreach (var med in medicines)
+                {
+                    table.AddCell(med.Name);
+                    table.AddCell(med.Dosage);
+                    table.AddCell(med.Duration);
+                }
+
+                document.Add(table);
+                document.Add(new Paragraph("\n"));
+
+                // Doctor Signature
+                var doctor = _db.User_Infos.Find(prescription.DoctorId);
+                Paragraph signature = new Paragraph();
+                signature.Alignment = Element.ALIGN_RIGHT;
+                signature.Add(new Chunk("\n\n\n_________________________\n"));
+                signature.Add($"{doctor.FirstName} {doctor.LastName}\n");
+                signature.Add($"{doctor.DocType} | Reg: {doctor.RegistrationNo}");
+                document.Add(signature);
+
+                // Footer
+                Paragraph footer = new Paragraph("\n\nThis is a computer-generated prescription",
+                    FontFactory.GetFont(FontFactory.HELVETICA_OBLIQUE, 10));
+                footer.Alignment = Element.ALIGN_CENTER;
+                document.Add(footer);
+
+                document.Close();
+                return ms.ToArray();
+            }
+        }
+
+        private List<MedicineViewModel> ParseMedicines(string notes)
+        {
+            var medicines = new List<MedicineViewModel>();
+
+            if (!string.IsNullOrEmpty(notes))
+            {
+                var lines = notes.Split('\n');
+                foreach (var line in lines)
+                {
+                    if (line.Contains("-") && !line.StartsWith("Medicines:"))
+                    {
+                        var parts = line.Split('-');
+                        if (parts.Length >= 3)
+                        {
+                            medicines.Add(new MedicineViewModel
+                            {
+                                Name = parts[0].Trim(),
+                                Dosage = parts[1].Trim(),
+                                Duration = parts[2].Trim()
+                            });
+                        }
+                    }
+                }
+            }
+            return medicines;
+        }
+
+        public class MedicineViewModel
+        {
+            public string Name { get; set; }
+            public string Dosage { get; set; }
+            public string Duration { get; set; }
+        }
+
+        // ====================
+        // 5. PROFILE MANAGEMENT
+        // ====================
+        public ActionResult Profile()
+        {
+            var doctorId = GetCurrentDoctorId();
+            var doctor = _db.User_Infos.Find(doctorId);
+
+            ViewBag.DoctorTypes = new SelectList(_db.Doctor_Types, "TypeName", "TypeName");
+            ViewBag.DoctorSchedules = _db.Doctor_Details
+                .Where(d => d.DoctorId == doctorId)
+                .ToList();
+
+            return View(doctor);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Profile(User_Info model, HttpPostedFileBase imageFile)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var doctorInDb = _db.User_Infos.Find(model.Id);
+                    if (doctorInDb == null)
+                        return HttpNotFound();
+
+                    doctorInDb.FirstName = model.FirstName;
+                    doctorInDb.LastName = model.LastName;
+                    doctorInDb.Email = model.Email;
+                    doctorInDb.Phone = model.Phone;
+                    doctorInDb.Department = model.Department;
+                    doctorInDb.DocType = model.DocType;
+
+                    if (imageFile != null && imageFile.ContentLength > 0)
+                    {
+                        var validExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                        var extension = Path.GetExtension(imageFile.FileName).ToLower();
+
+                        if (!validExtensions.Contains(extension))
+                        {
+                            ModelState.AddModelError("", "Invalid file type. Only JPG, PNG, GIF allowed.");
+                            return View(model);
+                        }
+
+                        var fileName = $"doc_{model.Id}_{DateTime.Now:yyyyMMddHHmmss}{extension}";
+                        var path = Path.Combine(Server.MapPath("~/Content/DoctorImages"), fileName);
+
+                        imageFile.SaveAs(path);
+                        doctorInDb.Image = fileName;
+                    }
+
+                    _db.Entry(doctorInDb).State = EntityState.Modified;
+                    _db.SaveChanges();
+
+                    TempData["Success"] = "Profile updated successfully";
+                    return RedirectToAction("Profile");
+                }
+                catch (Exception ex)
+                {
+                    ModelState.AddModelError("", $"Update failed: {ex.Message}");
+                }
+            }
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult ChangePassword(int id, string currentPassword, string newPassword, string confirmPassword)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(currentPassword) ||
+                    string.IsNullOrWhiteSpace(newPassword) ||
+                    string.IsNullOrWhiteSpace(confirmPassword))
+                {
+                    TempData["ErrorMessage"] = "All fields are required";
+                    return RedirectToAction("Profile");
+                }
+
+                if (newPassword != confirmPassword)
+                {
+                    TempData["ErrorMessage"] = "New password and confirmation password do not match";
+                    return RedirectToAction("Profile");
+                }
+
+                if (newPassword.Length < 6)
+                {
+                    TempData["ErrorMessage"] = "Password must be at least 6 characters long";
+                    return RedirectToAction("Profile");
+                }
+
+                var doctor = _db.User_Infos.Find(id);
+                if (doctor == null)
+                {
+                    TempData["ErrorMessage"] = "Doctor not found";
+                    return RedirectToAction("Profile");
+                }
+
+                if (doctor.Password != currentPassword)
+                {
+                    TempData["ErrorMessage"] = "Current password is incorrect";
+                    return RedirectToAction("Profile");
+                }
+
+                doctor.Password = newPassword;
+                doctor.ConfirmPassword = newPassword;
+                _db.Entry(doctor).State = EntityState.Modified;
+                _db.SaveChanges();
+
+                TempData["SuccessMessage"] = "Password changed successfully";
+                return RedirectToAction("Profile");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error changing password: " + ex.Message;
+                return RedirectToAction("Profile");
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AddSchedule(int doctorId, string day, string timeStart, string timeEnd, double consultingFees)
+        {
+            try
+            {
+                var newSchedule = new Doctor_Details
+                {
+                    DoctorId = doctorId,
+                    Day = day,
+                    TimeStart = timeStart,
+                    TimeEnd = timeEnd,
+                    ConsultingFees = consultingFees
+                };
+
+                _db.Doctor_Details.Add(newSchedule);
+                _db.SaveChanges();
+
+                TempData["Success"] = "Schedule added successfully.";
+                return RedirectToAction("Profile");
+            }
+            catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+            {
+                foreach (var validationErrors in ex.EntityValidationErrors)
+                {
+                    foreach (var validationError in validationErrors.ValidationErrors)
+                    {
+                        ModelState.AddModelError(validationError.PropertyName, validationError.ErrorMessage);
+                    }
+                }
+
+                ViewBag.DoctorTypes = new SelectList(_db.Doctor_Types, "TypeName", "TypeName");
+                return View("Profile", _db.User_Infos.Find(doctorId));
+            }
+        }
+
+        // Add to DoctorController
+        [HttpGet]
+        public JsonResult SearchMedicines(string term)
+        {
+            var medicines = _db.Medicines
+                .Where(m => m.MedicineName.Contains(term) ||
+                           m.GenericName.Contains(term) ||
+                           m.BrandName.Contains(term))
+                .Select(m => new {
+                    m.Id,
+                    m.MedicineName,
+                    m.GenericName,
+                    m.BrandName
+                })
+                .Take(10)
+                .ToList();
+
+            return Json(medicines, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteSchedule(int id)
+        {
+            try
+            {
+                var schedule = _db.Doctor_Details.Find(id);
+                if (schedule == null)
+                {
+                    return HttpNotFound("Schedule not found");
+                }
+
+                var currentDoctorId = GetCurrentDoctorId();
+                if (schedule.DoctorId != currentDoctorId)
+                {
+                    return new HttpStatusCodeResult(HttpStatusCode.Forbidden, "You can only delete your own schedules");
+                }
+
+                _db.Doctor_Details.Remove(schedule);
+                _db.SaveChanges();
+
+                TempData["SuccessMessage"] = "Schedule deleted successfully";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error deleting schedule: " + ex.Message;
+            }
+
+            return RedirectToAction("Profile");
+        }
+
+        // ====================
+        // HELPER METHODS
+        // ====================
+        private int GetCurrentDoctorId()
+        {
+            return Convert.ToInt32(Session["UserId"]);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                _db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+
+
+
+    // ====================
+    // VIEW MODELS
+    // ====================
+    public class PatientDetailsViewModel
+    {
+        public User_Info Patient { get; set; }
+        public Dictionary<string, object> PatientDetails { get; set; }
+        public List<Medical_History> MedicalHistory { get; set; }
+        public List<Prescription> Prescriptions { get; set; }
+    }
+}

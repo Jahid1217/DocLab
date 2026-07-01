@@ -1,0 +1,108 @@
+﻿@model WebApplicationDocLab.Models.Test
+
+@{
+    ViewBag.Title = "Edit Test";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+<link href="~/Page/css/MT_Edit.css" rel="stylesheet">
+<div class="edit-container">
+    <div class="edit-header">
+        <h2><i class="fas fa-edit"></i> Edit Test</h2>
+        <div class="alert alert-info" role="alert">
+            <i class="fas fa-info-circle"></i> Update the test details below.
+        </div>
+    </div>
+
+    @using (Html.BeginForm("Edit", "MT", FormMethod.Post, new { @class = "edit-form", id = "editForm" }))
+    {
+        @Html.AntiForgeryToken()
+        @Html.ValidationSummary(true, "", new { @class = "validation-summary" })
+        @Html.HiddenFor(model => model.Id)
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.TestName, htmlAttributes: new { @class = "col-form-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.TestName, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter test name" } })
+                @Html.ValidationMessageFor(model => model.TestName, "", new { @class = "validation-message" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Category, htmlAttributes: new { @class = "col-form-label col-md-3" })
+            <div class="col-md-9">
+                @Html.EditorFor(model => model.Category, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter category" } })
+                @Html.ValidationMessageFor(model => model.Category, "", new { @class = "validation-message" })
+            </div>
+        </div>
+
+        <div class="form-group row">
+            @Html.LabelFor(model => model.Created_at, htmlAttributes: new { @class = "col-form-label col-md-3" })
+            <div class="col-md-9">
+                @Html.TextBoxFor(model => model.Created_at, new { @class = "form-control", @readonly = "readonly" })
+            </div>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary save-btn">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+            <a href="@Url.Action("Index")" class="btn btn-secondary cancel-btn">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    }
+</div>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+    <script>
+        $(document).ready(function () {
+            // Form submission handling
+            $('#editForm').submit(function (e) {
+                e.preventDefault();
+
+                // Show loading state
+                $('.save-btn').html('<i class="fas fa-spinner fa-spin"></i> Saving...').prop('disabled', true);
+
+                // Submit form after validation
+                if ($(this).valid()) {
+                    this.submit();
+                } else {
+                    $('.save-btn').html('<i class="fas fa-save"></i> Save Changes').prop('disabled', false);
+                }
+            });
+
+            // Handle success/error messages
+            @if (TempData["EditSuccess"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Success!',
+                    text: '@TempData["EditSuccess"]',
+                    icon: 'success',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+
+            @if (TempData["EditError"] != null)
+            {
+                <text>
+                Swal.fire({
+                    title: 'Error!',
+                    text: '@TempData["EditError"]',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                </text>
+            }
+
+            // Add input validation styling
+            $('input').on('blur', function() {
+                if ($(this).valid()) {
+                    $(this).addClass('is-valid').removeClass('is-invalid');
+                } else {
+                    $(this).addClass('is-invalid').removeClass('is-valid');
+                }
+            });
+        });
+    </script>

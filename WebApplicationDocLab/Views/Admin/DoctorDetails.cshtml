@@ -1,0 +1,248 @@
+﻿@model List<WebApplicationDocLab.Models.User_Info>
+@using WebApplicationDocLab.Models;
+@{
+    ViewBag.Title = "Doctor Details";
+    Layout = "~/Views/_LayoutPageAdminIndex.cshtml";
+}
+
+<link href="~/Page/css/Doctor_Details.css" rel="stylesheet">
+@*<div class="chat-list-body">
+    @foreach (var doctor in ViewBag.Doctor)
+    {
+        <a href="@Url.Action("Chat", "Message", new { userId = doctor.Id })" class="doctor-chat-link">
+            <span>@doctor.FirstName @doctor.LastName</span>
+            <i class="fas fa-comment-dots"></i>
+        </a>
+    }
+</div>*@
+<div class="doctor-management-container">
+    <h2 class="text-center mb-4" style="color: #2c3e50; font-weight: 600;">Doctor Management</h2>
+ 
+    <!-- Search Box -->
+    <div class="search-container">
+        @*<i class="fas fa-search"></i>*@
+        <input type="text" id="searchInput" class="form-control search-input" placeholder="Search doctors by name, specialty, or department..." />
+    </div>
+
+    <!-- No Results Message -->
+    <div id="noResults" class="no-results">
+        <i class="fas fa-search fa-3x mb-3" style="color: #ccc;"></i>
+        <h4>No matching doctors found</h4>
+        <p class="text-muted">Try adjusting your search query</p>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table doctor-table" id="doctorTable">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Reg No</th>
+                    <th>Phone</th>
+                    <th>Specialty</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var doctor in Model)
+                {
+                    if (doctor.UserType == "Doctor")
+                    {
+                        var statusClass = doctor.Status == "Active" ? "status-active" : "status-inactive";
+                        var statusText = doctor.Status == "Active" ? "ACTIVE" : "INACTIVE";
+                        var updateModalId = $"updateModal_{doctor.Id}";
+                        var detailsModalId = $"detailsModal_{doctor.Id}";
+
+                        <tr class="doctor-row">
+                            <td data-label="Name">@doctor.Title @doctor.FirstName @doctor.LastName</td>
+                            <td data-label="Email">@doctor.Email</td>
+                            <td data-label="Reg No">@doctor.RegistrationNo</td>
+                            <td data-label="Phone">@doctor.Phone</td>
+                            <td data-label="Specialty">@doctor.DocType.ToString()</td>
+                            <td data-label="Department">@doctor.Department</td>
+                            <td data-label="Status"><span class="status-badge @statusClass">@statusText</span></td>
+                            <td class="action-buttons text-center">
+                                <button type="button" class="btn btn-status" data-toggle="modal" data-target="#@updateModalId">
+                                    <i class="fas fa-edit"></i> Status
+                                </button>
+                                <button type="button" class="btn btn-details" data-toggle="modal" data-target="#@detailsModalId">
+                                    <i class="fas fa-eye"></i> Details
+                                </button>
+                            </td>
+                        </tr>
+
+                        <!-- Update Status Modal -->
+                        <div class="modal fade" id="@updateModalId" tabindex="-1" role="dialog" aria-labelledby="updateModalLabel_@doctor.Id">
+                            <div class="modal-dialog modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Update Doctor Status</h5>
+                                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    @using (Html.BeginForm("UpdateDoctorStatus", "Admin", FormMethod.Post))
+                                    {
+                                        <div class="modal-body">
+                                            <input type="hidden" name="doctorId" value="@doctor.Id" />
+                                            <div class="form-group">
+                                                <p><span class="detail-label">Name:</span> @doctor.Title @doctor.FirstName @doctor.LastName</p>
+                                            </div>
+                                            <div class="form-group">
+                                                <p><span class="detail-label">Current Status:</span> <span class="status-badge @statusClass">@statusText</span></p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label class="detail-label">New Status</label>
+                                                <select name="Status" class="form-control" required>
+                                                    <option value="Active" @(doctor.Status == "Active" ? "selected" : "")>Active</option>
+                                                    <option value="Inactive" @(doctor.Status == "Inactive" ? "selected" : "")>Inactive</option>
+                                                </select>
+                                            </div>
+                                            <input type="hidden" name="created" value="@Session["UserEmail"]" />
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-save"></i> Save Changes
+                                            </button>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Details Modal -->
+                        <div class="modal fade" id="@detailsModalId" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel_@doctor.Id">
+                            <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Doctor Details</h5>
+                                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                            <span aria-hidden="true">&times;</span>
+                                        </button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row">
+                                            <div class="col-md-4 text-center">
+                                                <img src="@Url.Content("~/image/DoctorImage/" + doctor.Image)" class="img-fluid rounded-circle mb-3" style="max-height: 200px;" alt="@doctor.FirstName @doctor.LastName" />
+                                                <h4>@doctor.Title @doctor.FirstName @doctor.LastName</h4>
+                                                <p class="text-muted">@doctor.DocType.ToString()</p>
+                                                <span class="status-badge @statusClass">@statusText</span>
+                                            </div>
+                                            <div class="col-md-8">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <p><span class="detail-label">Email:</span> @doctor.Email</p>
+                                                        <p><span class="detail-label">Phone:</span> @doctor.Phone</p>
+                                                        <p><span class="detail-label">Gender:</span> @doctor.Gender</p>
+                                                        <p><span class="detail-label">Blood Group:</span> @doctor.BloodGroup</p>
+                                                        <p><span class="detail-label">Date of Birth:</span> @doctor.DateOfBirth.ToString("dd/MM/yyyy")</p>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <p><span class="detail-label">Registration No:</span> @doctor.RegistrationNo</p>
+                                                        <p><span class="detail-label">NID Number:</span> @doctor.NID</p>
+                                                        <p><span class="detail-label">Department:</span> @doctor.Department</p>
+                                                        <p><span class="detail-label">Specialty:</span> @doctor.DoctorType</p>
+                                                    </div>
+                                                </div>
+                                                <hr>
+                                                <p><span class="detail-label">Address:</span> @doctor.Address</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                            <i class="fas fa-times"></i> Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- JavaScript Section -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        // Add animation to table rows
+        $('.doctor-table tbody tr').each(function (i) {
+            $(this).delay(i * 50).animate({
+                opacity: 1
+            }, 200);
+        });
+
+        // Form submission handling
+        $('form').submit(function () {
+            var submitBtn = $(this).find('button[type="submit"]');
+            submitBtn.html('<i class="fas fa-spinner fa-spin"></i> Processing...');
+            submitBtn.prop('disabled', true);
+        });
+
+        // Initialize tooltips
+        $('[data-toggle="tooltip"]').tooltip({
+            placement: 'top'
+        });
+
+        // Responsive table adjustments
+        function handleResponsiveTable() {
+            if ($(window).width() < 768) {
+                // Add data-labels for mobile view
+                $('.doctor-table thead th').each(function () {
+                    var label = $(this).text();
+                    $('.doctor-table tbody td:nth-child(' + ($(this).index() + 1) + ')').attr('data-label', label);
+                });
+            }
+        }
+
+        // Run on load and resize
+        handleResponsiveTable();
+        $(window).resize(handleResponsiveTable);
+
+        // Search functionality
+        $('#searchInput').on('keyup', function () {
+            var searchText = $(this).val().toLowerCase();
+            var hasResults = false;
+
+            $('.doctor-row').each(function () {
+                var rowText = $(this).text().toLowerCase();
+                if (rowText.indexOf(searchText) > -1) {
+                    $(this).show();
+                    hasResults = true;
+                } else {
+                    $(this).hide();
+                }
+            });
+
+            // Show/hide no results message
+            if (hasResults || searchText === '') {
+                $('#noResults').hide();
+                $('#doctorTable').show();
+            } else {
+                $('#doctorTable').hide();
+                $('#noResults').show();
+            }
+        });
+
+        // Clear search when clicking the X in search box
+        $('#searchInput').on('search', function () {
+            if ($(this).val() === '') {
+                $('.doctor-row').show();
+                $('#noResults').hide();
+                $('#doctorTable').show();
+            }
+        });
+    });
+</script>

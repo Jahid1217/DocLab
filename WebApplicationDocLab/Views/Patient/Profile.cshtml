@@ -1,0 +1,279 @@
+﻿@model WebApplicationDocLab.Models.User_Info
+
+@{
+    ViewBag.Title = "My Profile";
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+<!-- Inline CSS -->
+<style>
+    .profile-container {
+        margin-top: 30px;
+        margin-bottom: 50px;
+    }
+
+    .profile-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        height: 100%;
+    }
+
+    .profile-details-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        padding: 30px;
+        height: 100%;
+    }
+
+    .profile-header {
+        margin-bottom: 20px;
+    }
+
+    .profile-avatar {
+        margin: 0 auto 20px;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .profile-picture {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .avatar-placeholder {
+        font-size: 150px;
+        color: #6c757d;
+    }
+
+    .profile-summary {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+        .profile-summary h3 {
+            margin-top: 15px;
+            color: #343a40;
+        }
+
+        .profile-summary .text-muted {
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+    .profile-actions {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+
+    .profile-section {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .profile-section:last-child {
+            border-bottom: none;
+        }
+
+        .profile-section h4 {
+            color: #495057;
+            margin-bottom: 20px;
+        }
+
+    .detail-item {
+        margin-bottom: 15px;
+    }
+
+        .detail-item label {
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .detail-item p {
+            margin: 0;
+            color: #343a40;
+        }
+
+    .blood-group {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.85rem;
+    }
+
+    /* Blood group specific colors */
+    .a_positive {
+        background-color: #ffecec;
+        color: #dc3545;
+    }
+
+    .a_negative {
+        background-color: #fff6e6;
+        color: #fd7e14;
+    }
+
+    .b_positive {
+        background-color: #e6f7ff;
+        color: #17a2b8;
+    }
+
+    .b_negative {
+        background-color: #e6ffe6;
+        color: #28a745;
+    }
+
+    @@media (max-width: 768px) {
+        .profile-avatar {
+            width: 120px;
+            height: 120px;
+        }
+
+        .avatar-placeholder {
+            font-size: 120px;
+        }
+
+        .profile-actions {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+</style>
+
+<div class="container profile-container">
+    <div class="row">
+        <div class="col-md-4">
+            <div class="profile-card">
+                <div class="profile-header text-center">
+                    
+                </div>
+
+                <div class="profile-summary">
+                    <h3>@Model.Title @Model.FirstName @Model.LastName</h3>
+                    <p class="text-muted">@Model.Email</p>
+                </div>
+
+                <div class="profile-actions">
+                    @Html.ActionLink("Edit Profile", "EditProfile", null, new { @class = "btn btn-primary btn-sm" })
+                    @Html.ActionLink("Delete Account", "DeleteProfile", null, new { @class = "btn btn-outline-danger btn-sm" })
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-8">
+            <div class="profile-details-card">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show">
+                        @TempData["SuccessMessage"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                @if (TempData["ErrorMessage"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show">
+                        @TempData["ErrorMessage"]
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                }
+
+                <div class="profile-section">
+                    <h4><i class="fas fa-id-card"></i> Personal Information</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Full Name</label>
+                                <p>@Model.Title @Model.FirstName @Model.LastName</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Date of Birth</label>
+                                <p>@Model.DateOfBirth.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Gender</label>
+                                <p>@Model.Gender</p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Blood Group</label>
+                                <p class="blood-group @Model.BloodGroup.ToString().ToLower().Replace("_", "")">@Model.BloodGroup</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-section">
+                    <h4><i class="fas fa-address-book"></i> Contact Information</h4>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Email Address</label>
+                                <p><a href="mailto:@Model.Email">@Model.Email</a></p>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-item">
+                                <label>Phone Number</label>
+                                <p><a href="tel:@Model.Phone">@Model.Phone</a></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <label>Address</label>
+                        <p>@Model.Address</p>
+                    </div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.NID))
+                {
+                    <div class="profile-section">
+                        <h4><i class="fas fa-id-badge"></i> Identification</h4>
+                        <div class="detail-item">
+                            <label>NID/Passport</label>
+                            <p>@Model.NID</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Include Font Awesome directly -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+<script>
+    $(document).ready(function () {
+        // Initialize Bootstrap tooltips if needed
+        $('[data-toggle="tooltip"]').tooltip();
+
+        // Make alerts dismissible
+        $('.alert').alert();
+    });
+</script>

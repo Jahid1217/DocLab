@@ -1,0 +1,28 @@
+﻿
+@{
+    ViewBag.Title = "VisitHistory";
+    Layout = "~/Views/_LayoutPagePatient.cshtml";
+}
+
+<h2>VisitHistory</h2>
+
+@{
+    var visits = ViewBag.VisitHistory as List<WebApplicationDocLab.Models.BookingAppointment>;
+}
+
+<h2>Your Visit History</h2>
+
+@if (visits != null && visits.Any())
+{
+    <ul>
+        @foreach (var visit in visits)
+        {
+            <li>@visit.Booking_Date</li>
+ <!-- You can add more information such as doctor name if needed -->
+        }
+    </ul>
+}
+else
+{
+    <p>No visit history available.</p>
+}

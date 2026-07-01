@@ -1,0 +1,571 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Entity;
+using System.IO;
+using System.Linq;
+using System.Net.Mail;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using WebApplicationDocLab.Context;
+using WebApplicationDocLab.Models;
+using System.Globalization;
+
+namespace WebApplicationDocLab.Controllers
+{
+    public class AdminController : Controller
+    {
+        protected override void OnActionExecuting(ActionExecutingContext filterContext)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+            {
+                filterContext.Result = new RedirectToRouteResult(
+                    new System.Web.Routing.RouteValueDictionary {
+                { "controller", "Login" },
+                { "action", "Login" }
+                    });
+            }
+
+            base.OnActionExecuting(filterContext);
+        }
+        public DoctorLab _contextdb;
+        public AdminController()
+        {
+            _contextdb = new DoctorLab();
+        }
+        // GET: Admin
+        public ActionResult Index()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+
+            using (var db = new DoctorLab())
+            {
+                int doctorCount = db.User_Infos.Count(u => u.UserType == "Doctor");
+                int patientCount = db.User_Infos.Count(u => u.UserType == "Patient");
+
+                // Calculate total income from payment table (assuming column name is Amount)
+                decimal totalIncome = db.Payments.Sum(p => (decimal?)p.Amount) ?? 0;
+
+                // Count bookings by bookType (assume "Online" and "Offline" are possible values)
+                var bookingTypeCounts = db.BookingAppointments
+                    .GroupBy(b => b.BookType)
+                    .Select(g => new { BookType = g.Key, Count = g.Count() })
+                    .ToList();
+
+                int onlineCount = bookingTypeCounts.FirstOrDefault(x => x.BookType == "Online")?.Count ?? 0;
+                int offlineCount = bookingTypeCounts.FirstOrDefault(x => x.BookType == "Offline")?.Count ?? 0;
+
+                // Bookings per weekday (Sunday-Saturday)
+                var bookingsByDay = db.BookingAppointments
+                    .GroupBy(b => DbFunctions.DiffDays(DateTime.MinValue, b.Booking_Date) % 7)
+                    .Select(g => new
+                    {
+                        DayOfWeek = g.Key,
+                        Count = g.Count()
+                    })
+                    .ToList();
+
+                // Map SQL weekday (0=Sunday, 1=Monday, ..., 6=Saturday) to JS array
+                int[] weekCounts = new int[7];
+                foreach (var item in bookingsByDay)
+                {
+                    if (item.DayOfWeek.HasValue && item.DayOfWeek.Value >= 0 && item.DayOfWeek.Value <= 6)
+                    {
+                        weekCounts[item.DayOfWeek.Value] = item.Count;
+                    }
+                }
+
+                // DoctorType counts (only for doctors)
+                var doctorTypeCounts = db.User_Infos
+                    .Where(u => u.UserType == "Doctor")
+                    .GroupBy(u => u.DocType)
+                    .Select(g => new { DoctorType = g.Key, Count = g.Count() })
+                    .ToList();
+
+                // Prepare DoctorType data for the view
+                var doctorTypeLabels = doctorTypeCounts.Select(x => x.DoctorType?? "Unknown").ToList();
+                var doctorTypeData = doctorTypeCounts.Select(x => x.Count).ToList();
+
+                ViewBag.DoctorCount = doctorCount;
+                ViewBag.PatientCount = patientCount;
+                ViewBag.TotalIncome = totalIncome;
+                ViewBag.OnlineBookingCount = onlineCount;
+                ViewBag.OfflineBookingCount = offlineCount;
+                ViewBag.BookingCountsByDay = weekCounts; // Sunday=0, ..., Saturday=6
+                ViewBag.DoctorTypeLabels = doctorTypeLabels;
+                ViewBag.DoctorTypeData = doctorTypeData;
+            }
+
+            var user = _contextdb.User_Infos.ToList();
+            return View(user);
+        }
+
+        public ActionResult DoctorDetails()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+
+            var doctor = _contextdb.User_Infos.ToList();
+            return View(doctor);
+        }
+        [HttpPost]
+        public ActionResult UpdateDoctorStatus(int doctorId, string Status, string created)
+        {
+            var doctor = _contextdb.User_Infos.Find(doctorId); 
+            if (doctor != null)
+            {
+                doctor.Status = Status; 
+                doctor.createdBy = created; 
+                doctor.CreatedDate = DateTime.Now;
+
+                _contextdb.SaveChanges(); 
+                TempData["MsgEdit"] = "Doctor status updated successfully.";
+            }
+            else
+            {
+                TempData["MsgEdit"] = "Doctor not found.";
+            }
+
+            return RedirectToAction("DoctorDetails"); 
+        }
+
+        public ActionResult DeleteDoctor(int id)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            var doctor = _contextdb.User_Infos.Find(id);
+            if (doctor != null)
+            {
+                _contextdb.User_Infos.Remove(doctor);
+                _contextdb.SaveChanges();
+                TempData["MsgDelete"] = "Doctor deleted successfully.";
+            }
+            else
+            {
+                TempData["MsgDelete"] = "Doctor not found.";
+            }
+            return RedirectToAction("DoctorDetails");
+        }
+
+        public ActionResult PatientDetails()
+        {
+            try
+            {
+                if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                    return RedirectToAction("Login", "Login");
+                var patient = _contextdb.User_Infos.Where(u => u.UserType == AppUserType.Patient.ToString()).ToList();
+                var doctors = _contextdb.User_Infos.Where(u => u.UserType == "Admin").ToList();
+                ViewBag.Doctors = doctors;
+                return View(patient);
+            }
+            catch (Exception ex)
+            {
+                
+                return View();
+            }
+        }
+
+        [HttpPost]
+        public ActionResult UpdatePatientStatus(int patientId, string Status, string created)
+        {
+            try
+            {
+                var Patient = _contextdb.User_Infos.Find(patientId);
+                if (Patient != null)
+                {
+                    Patient.Status = Status;
+                    Patient.createdBy = created;
+                    Patient.CreatedDate = DateTime.Now;
+
+                    _contextdb.SaveChanges();
+                    TempData["MsgEdit"] = "Patient status updated successfully.";
+                }
+                else
+                {
+                    TempData["MsgEdit"] = "Patient not found.";
+                }
+
+                return RedirectToAction("PatientDetails");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("PatientDetails");
+            }
+
+        }
+        public ActionResult DeletePatient(int id)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            var patient = _contextdb.User_Infos.Find(id);
+            if (patient != null)
+            {
+                _contextdb.User_Infos.Remove(patient);
+                _contextdb.SaveChanges();
+                TempData["MsgDelete"] = "Patient deleted successfully.";
+            }
+            else
+            {
+                TempData["MsgDelete"] = "Patient not found.";
+            }
+            return RedirectToAction("PatientDetails");
+        }
+        public ActionResult DoctorADD()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+
+            ViewBag.DoctorTypeName = new SelectList(_contextdb.Doctor_Types, "TypeName", "TypeName");
+            return View();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult DoctorRegister(User_Info model, HttpPostedFileBase ImageFile)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+
+            var existingUser = _contextdb.User_Infos.FirstOrDefault(u => u.Email == model.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "Email already exists.");
+                return View(model);
+            }
+
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    if (ImageFile != null && ImageFile.ContentLength > 0)
+                    {
+                        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(ImageFile.FileName)}";
+                        var directoryPath = Server.MapPath("~/image/DoctorImage/");
+
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+
+                        var path = Path.Combine(directoryPath, fileName);
+                        ImageFile.SaveAs(path);
+                        model.Image = fileName;
+                    }
+
+                    // Set additional properties
+                    model.UserType = "Doctor";
+                    model.createdBy = Session["UserEmail"].ToString();
+                    model.CreatedDate = DateTime.Now;
+
+                    _contextdb.User_Infos.Add(model);
+                    _contextdb.SaveChanges();
+
+                    // Send email notification
+                    SendDoctorRegistrationEmail(model.Email, model.Password, $"{model.Title} {model.FirstName} {model.LastName}");
+
+                    TempData["SuccessMessage"] = "Doctor registered successfully and notification email sent!";
+                    return RedirectToAction("DoctorDetails");
+                }
+
+                // If validation failed, reload Doctor Type dropdown
+                ViewBag.DoctorTypeName = new SelectList(_contextdb.Doctor_Types, "Id", "TypeName");
+                return View("DoctorADD", model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while registering: " + ex.Message);
+                ViewBag.DoctorTypeName = new SelectList(_contextdb.Doctor_Types, "Id", "TypeName");
+                return View("DoctorADD", model);
+            }
+        }
+
+        private void SendDoctorRegistrationEmail(string email, string password, string fullName)
+        {
+            try
+            {
+                var smtpClient = new SmtpClient("smtp.gmail.com") // e.g., smtp.gmail.com
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("jahid.hasan1217@gmail.com", "rpxx iroi vvov auor"),
+                    EnableSsl = true,
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("jahid.hasan1217@gmail.com"),
+                    Subject = "Your doctor account has been successfully created",
+                    Body = $" Dear {fullName}\n\n Your doctor account has been successfully created by the administrator.\n\nYour Login Credentials:\nEmail: {email}\nPassword: {password}\nPlease log in using the credentials above and change your password immediately for security reasons.\nYou can access the system using this email and password \nBest regards, contact Administration Team",
+                    IsBodyHtml = false, 
+                };
+
+                mailMessage.To.Add(email);
+                smtpClient.Send(mailMessage);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error sending Forgate email");
+            }
+        }
+
+        public ActionResult Admin_Info()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+
+            // Store session value in a variable
+            string userEmail = Session["UserEmail"].ToString();
+
+            // Now use it in the LINQ query
+            var admin = _contextdb.User_Infos.FirstOrDefault(u => u.Email == userEmail);
+
+            if (admin == null)
+            {
+                // Handle case when admin not found
+                return RedirectToAction("Error", "Home");
+            }
+
+            return View(admin);
+        }
+
+        public ActionResult EditAdmin(int id)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            var admin = _contextdb.User_Infos.Find(id);
+            ViewBag.DoctorTypeName = new SelectList(_contextdb.Doctor_Types,"TypeName", "TypeName");
+            if (admin == null)
+            {
+                TempData["MsgError"] = "Admin not found.";
+                return RedirectToAction("Admin_Info");
+            }
+            return View(admin);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult EditAdmin(User_Info model, HttpPostedFileBase ImageFile)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    // Handle image upload
+                    if (ImageFile != null && ImageFile.ContentLength > 0)
+                    {
+                        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(ImageFile.FileName)}";
+                        var directoryPath = Server.MapPath("~/image/AdminImage/");
+                        // Ensure directory exists
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        var path = Path.Combine(directoryPath, fileName);
+                        ImageFile.SaveAs(path);
+                        model.Image = fileName;
+                    }
+                    // Update additional properties
+                    model.UserType = "Admin";
+                    model.createdBy = Session["UserEmail"].ToString();
+                    model.CreatedDate = DateTime.Now;
+                    model.Status = "Active"; 
+                    // Save changes to database
+                    _contextdb.Entry(model).State = EntityState.Modified;
+                    _contextdb.SaveChanges();
+                    TempData["MsgEdit"] = "Admin information updated successfully.";
+                    return RedirectToAction("Admin_Info");
+                }
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while updating: " + ex.Message);
+                return View(model);
+            }
+        }
+        [HttpPost]
+        public ActionResult DeleteAdmin(int id, string Password)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+
+            var admin = _contextdb.User_Infos.Find(id);
+            if (admin != null)
+            {
+                if (admin.Password == Password) // You can use password hashing if implemented
+                {
+                    admin.Status = "Delete"; // Consider "Inactive" instead of "Active" for deactivation
+                    _contextdb.Entry(admin).State = EntityState.Modified;
+                    _contextdb.SaveChanges();
+
+                    TempData["MsgDelete"] = "Admin account deleted successfully.";
+                    return RedirectToAction("Login", "Login");
+                }
+                else
+                {
+                    TempData["MsgDelete"] = "Incorrect password. Admin not deleted.";
+                    return RedirectToAction("Admin_Info");
+                }
+            }
+            else
+            {
+                TempData["MsgDelete"] = "Admin not found.";
+                return RedirectToAction("Admin_Info");
+            }
+        }
+        public ActionResult AdminCrated()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            ViewBag.DoctorTypeName = new SelectList(_contextdb.Doctor_Types, "TypeName", "TypeName");
+            return View();
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult AdminCrated(User_Info model, HttpPostedFileBase ImageFile)
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    // Handle image upload
+                    if (ImageFile != null && ImageFile.ContentLength > 0)
+                    {
+                        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(ImageFile.FileName)}";
+                        var directoryPath = Server.MapPath("~/image/AdminImage/");
+                        // Ensure directory exists
+                        if (!Directory.Exists(directoryPath))
+                        {
+                            Directory.CreateDirectory(directoryPath);
+                        }
+                        var path = Path.Combine(directoryPath, fileName);
+                        ImageFile.SaveAs(path);
+                        model.Image = fileName;
+                    }
+                    // Set additional properties
+                    model.UserType = "Admin";
+                    model.createdBy = Session["UserEmail"].ToString();
+                    model.CreatedDate = DateTime.Now;
+                    // Send email notification
+                    SendAdminRegistrationEmail(model.Email, model.Password, $"{model.Title} {model.FirstName} {model.LastName}");
+
+                    // Save to database
+                    _contextdb.User_Infos.Add(model);
+                    _contextdb.SaveChanges();
+                    TempData["SuccessMessage"] = "Admin created successfully also registered successfully and notification email sent!";
+                    return RedirectToAction("Index");
+                   
+                }
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred while creating admin: " + ex.Message);
+                return View(model);
+            }
+        }
+        private void SendAdminRegistrationEmail(string email, string password, string fullName)
+        {
+
+            try
+            {
+                var smtpClient = new SmtpClient("smtp.gmail.com") // e.g., smtp.gmail.com
+                {
+                    Port = 587,
+                    Credentials = new NetworkCredential("jahid.hasan1217@gmail.com", "rpxx iroi vvov auor"),
+                    EnableSsl = true,
+                };
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress("jahid.hasan1217@gmail.com"),
+                    Subject = "Your Admin account has been successfully created",
+                    Body = $" Dear {fullName}\n\n Your admin account has been successfully created by the administrator.\n\nYour Login Credentials:\nEmail: {email}\nPassword: {password}\nPlease log in using the credentials above and change your password immediately for security reasons.\nYou can access the system using this email and password \nBest regards, contact Administration Team",
+                    IsBodyHtml = false,
+                };
+
+                mailMessage.To.Add(email);
+                smtpClient.Send(mailMessage);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception or handle it as needed
+                throw new Exception("Error sending Forgate email");
+            }
+        }
+        public ActionResult Admin_List()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            var admin = _contextdb.User_Infos.Where(u => u.UserType == AppUserType.Admin.ToString()).ToList();
+            return View(admin);
+        }
+        [HttpPost]
+        public ActionResult UpdateAdminStatus(int adminId, string Status, string created)
+        {
+            try
+            {
+                var admin = _contextdb.User_Infos.Find(adminId);
+                if (admin != null)
+                {
+                    admin.Status = Status;
+                    admin.createdBy = created;
+                    admin.CreatedDate = DateTime.Now;
+
+                    _contextdb.SaveChanges();
+                    TempData["MsgEdit"] = "Admin status updated successfully.";
+                }
+                else
+                {
+                    TempData["MsgEdit"] = "Admin not found.";
+                }
+
+                return RedirectToAction("Admin_List");
+            }
+            catch (Exception ex)
+            {
+                return RedirectToAction("Admin_List");
+            }
+
+        }
+        
+        public ActionResult Payment()
+        {
+            if (Session["UserEmail"] == null || Session["UserType"].ToString() != "Admin" || Session["Status"].ToString() != "Active")
+                return RedirectToAction("Login", "Login");
+            var payments = _contextdb.Payments.ToList();
+            return View(payments);
+        }
+
+        public ActionResult Appointments()
+        {
+            using (var db = new DoctorLab())
+            {
+                var appointments = (from a in db.BookingAppointments
+                                    join p in db.User_Infos on a.PatientId equals p.Id
+                                    join d in db.User_Infos on a.DoctorId equals d.Id
+                                    select new AppointmentViewModel
+                                    {
+                                        AppointmentId = a.Id,
+                                        PatientId = a.PatientId,
+                                        PatientName = p.FirstName + " " + p.LastName,
+                                        DoctorId = a.DoctorId,
+                                        DoctorName = d.FirstName+""+p.LastName,
+                                        BookType = a.BookType,
+                                        Booking_Date = a.Booking_Date,
+                                        ActualTime = a.ActualTime
+                                    }).ToList();
+
+                return View(appointments);
+            }
+        }
+       
+        public ActionResult Doctor_Details()
+        {
+            return View();
+        }
+    }
+}

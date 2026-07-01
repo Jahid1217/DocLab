@@ -1,0 +1,103 @@
+﻿@model WebApplicationDocLab.Models.Payment
+@{
+    ViewBag.Title = "Payment";
+
+}
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">Payment for Appointment</h4>
+        </div>
+        <div class="card-body">
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            }
+
+            @if (Model != null)
+            {
+                <div class="payment-details mb-4 p-3 border rounded bg-light">
+                    <h5 class="text-primary">Payment Summary</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Transaction ID:</strong> @Model.TransactionId</p>
+                            <p><strong>Appointment ID:</strong> @Model.AppointmentId</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Amount:</strong> @ViewBag.PaymentAmount BDT</p>
+                            <p><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="paymentForm" method="post" class="needs-validation" novalidate>
+                    @Html.AntiForgeryToken()
+
+                    @Html.HiddenFor(m => m.TransactionId)
+                    @Html.HiddenFor(m => m.AppointmentId)
+                    @Html.HiddenFor(m => m.Amount)
+
+                    <div class="form-group">
+                        <label class="font-weight-bold">Select Payment Method</label>
+                        <select class="form-control" name="PaymentMethod" required>
+                            @foreach (var method in ViewBag.AvailablePaymentMethods as List<string>)
+                            {
+                                <option value="@method" selected="@(method == Model.PaymentMethod ? "selected" : null)">@method</option>
+                            }
+                        </select>
+                        <div class="invalid-feedback">Please select a payment method</div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-credit-card mr-2"></i> Confirm Payment
+                        </button>
+                    </div>
+                </form>
+            }
+            else
+            {
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Payment information is not available. Please try again.
+                </div>
+                <a href="@Url.Action("AddAppointment")" class="btn btn-outline-primary">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Appointment
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        $(document).ready(function () {
+            $('#paymentForm').submit(function () {
+                // Just show loading state, let the form submit normally
+                var btn = $(this).find('button[type="submit"]');
+                btn.html('<span class="spinner-border spinner-border-sm mr-2" role="status" aria-hidden="true"></span> Processing...')
+                    .prop('disabled', true);
+            });
+        });
+    </script>
+
+
+    <style>
+        .navbar {
+            display: none !important;
+        }
+
+        body {
+            padding-top: 0 !important;
+        }
+    </style>
+
+
+
+
+}

@@ -1,0 +1,395 @@
+﻿@model IEnumerable<WebApplicationDocLab.Models.BookingAppointment>
+@{
+    ViewBag.Title = "Appointments";
+    Layout = "~/Views/_LayoutPageDoctor.cshtml";
+}
+
+<style>
+    .appointments-container {
+        background-color: #f8f9fa;
+        min-height: 100vh;
+        padding: 20px 0;
+    }
+
+    .header-card {
+        border-radius: 12px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        border: none;
+        margin-bottom: 25px;
+        overflow: hidden;
+    }
+
+    .filter-buttons .btn {
+        border-radius: 30px;
+        padding: 8px 20px;
+        font-weight: 500;
+        margin: 0 5px;
+        transition: all 0.3s ease;
+        min-width: 100px;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .filter-buttons .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-buttons .btn.btn-primary {
+            background: linear-gradient(135deg, #4e73df, #224abe);
+            border: none;
+        }
+
+    .appointments-table-card {
+        border-radius: 12px;
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+        border: none;
+        overflow: hidden;
+    }
+
+    .table-header {
+        background: linear-gradient(135deg, #4e73df, #224abe);
+        color: white;
+        padding: 15px 20px;
+        font-weight: 600;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .appointments-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .appointments-table th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
+            padding: 15px 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .appointments-table td {
+            padding: 15px 20px;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .appointments-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .appointments-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        .appointments-table tr:hover {
+            background-color: #edf2ff;
+        }
+
+    .patient-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid #e0e0e0;
+        margin-right: 12px;
+    }
+
+    .patient-info {
+        display: flex;
+        align-items: center;
+    }
+
+    .patient-name {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 3px;
+    }
+
+    .patient-id {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .appointment-time {
+        font-weight: 500;
+        color: #343a40;
+    }
+
+    .appointment-date {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .status-badge {
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-align: center;
+        display: inline-block;
+        min-width: 90px;
+    }
+
+    .status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+    }
+
+    .status-confirmed {
+        background-color: #d4edda;
+        color: #155724;
+    }
+
+    .status-cancelled {
+        background-color: #f8d7da;
+        color: #721c24;
+    }
+
+    .status-completed {
+        background-color: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .type-badge {
+        padding: 5px 10px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+    }
+
+    .type-online {
+        background-color: #e0f7fa;
+        color: #006064;
+    }
+
+    .type-office {
+        background-color: #f3e5f5;
+        color: #4a148c;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+
+        .btn-action:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+    .btn-view {
+        background-color: #4e73df;
+        color: white;
+        border: none;
+    }
+
+        .btn-view:hover {
+            background-color: #224abe;
+        }
+
+    .btn-edit {
+        background-color: #ffc107;
+        color: white;
+        border: none;
+    }
+
+        .btn-edit:hover {
+            background-color: #e0a800;
+        }
+
+    .status-select {
+        border-radius: 20px;
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        border: 1px solid #ced4da;
+        background-color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        min-width: 120px;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 0.75rem center;
+        background-size: 16px 12px;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+    }
+
+        .status-select:focus {
+            border-color: #4e73df;
+            box-shadow: 0 0 0 0.2rem rgba(78, 115, 223, 0.25);
+            outline: none;
+        }
+
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+    }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h4 {
+            color: #6c757d;
+            font-weight: 500;
+        }
+</style>
+
+<div class="appointments-container">
+    <div class="container">
+        <!-- Updated Header Card -->
+        <div class="header-card">
+            <div class="card-body">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                    <div class="mb-3 mb-md-0">
+                        <h2 class="mb-1"><i class="fas fa-calendar-alt me-2"></i>All Appointments</h2>
+                        <p class="text-muted mb-0">Manage your patient appointments</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Appointments Table Card -->
+        <div class="appointments-table-card">
+            <div class="table-header">
+                <i class="fas fa-list me-2"></i> Appointment List
+            </div>
+
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    @if (Model.Any())
+                    {
+                        <table class="appointments-table">
+                            <thead>
+                                <tr>
+                                    <th>Patient</th>
+                                    <th>Date & Time</th>
+                                    <th>Contact</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="patient-info">
+                                                @if (item.User_Info != null)
+                                                {
+                                                    <img src="@Url.Content("~/Content/PatientImages/" + (item.User_Info.Image ?? "default.jpg"))"
+                                                         class="patient-avatar"
+                                                         alt="@item.User_Info.FirstName">
+                                                    <div>
+                                                        <div class="patient-name">@item.User_Info.FirstName @item.User_Info.LastName</div>
+                                                        <div class="patient-id">#PT@(item.User_Info.Id.ToString("D4"))</div>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">Unknown Patient</span>
+                                                }
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="appointment-date">@item.Booking_Date.ToString("MMM dd, yyyy")</div>
+                                            <div class="appointment-time">@item.Booking_Date.ToString("h:mm tt")</div>
+                                        </td>
+                                        <td>
+                                            @if (item.User_Info != null)
+                                            {
+                                                <div class="d-flex align-items-center">
+                                                    <i class="fas fa-phone text-primary me-2"></i>
+                                                    @item.User_Info.Phone
+                                                </div>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">N/A</span>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="type-badge type-@(item.BookType.ToLower())">
+                                                @item.BookType
+                                            </span>
+                                        </td>
+                                        <td>
+                                            @using (Html.BeginForm("UpdateAppointmentStatus", "Doctor", FormMethod.Post, new { @class = "d-inline" }))
+                                            {
+                                                @Html.Hidden("id", item.Id)
+                                                <select name="status" class="status-select"
+                                                        onchange="this.form.submit()"
+                                                        data-current="@item.Status">
+                                                    @foreach (var status in Enum.GetNames(typeof(WebApplicationDocLab.Models.BookingAppointment.AppointmentStatus)))
+                                                    {
+                                                        <option value="@status" selected="@(item.Status == status)">
+                                                            @status
+                                                        </option>
+                                                    }
+                                                </select>
+                                            }
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <a href="@Url.Action("PatientDetails","Doctor", new { id = item.PatientId })"
+                                                   class="btn-action btn-view" title="View Patient">
+                                                    <i class="fas fa-user"></i>
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="far fa-calendar-check fa-4x mb-3 text-muted"></i>
+                            <h4>No Appointments Found</h4>
+                            <p class="text-muted">You don't have any scheduled appointments.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script>
+        $(document).ready(function () {
+            // Highlight the current status in dropdowns
+            $('.status-select').each(function () {
+                const currentStatus = $(this).data('current');
+                $(this).addClass('status-' + currentStatus.toLowerCase());
+            });
+
+            // Update dropdown style when changed
+            $('.status-select').change(function () {
+                // Remove all status classes
+                $(this).removeClass(function (index, className) {
+                    return (className.match(/(^|\s)status-\S+/g) || []).join(' ');
+                });
+
+                // Add new status class
+                const newStatus = $(this).val().toLowerCase();
+                $(this).addClass('status-' + newStatus);
+            });
+        });
+    </script>
